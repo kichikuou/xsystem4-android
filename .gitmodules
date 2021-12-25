@@ -1,0 +1,3 @@
+[submodule "xsystem4"]
+	path = xsystem4
+	url = https://github.com/kichikuou/xsystem4.git
