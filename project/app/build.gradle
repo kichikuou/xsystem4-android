@@ -6,28 +6,18 @@ if (buildAsApplication) {
 else {
     apply plugin: 'com.android.library'
 }
+apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 31
     defaultConfig {
         if (buildAsApplication) {
-            applicationId "org.libsdl.app"
+            applicationId "io.github.kichikuou.xsystem4"
         }
-        minSdkVersion 16
+        minSdkVersion 21
         targetSdkVersion 31
         versionCode 1
         versionName "1.0"
-        externalNativeBuild {
-            ndkBuild {
-                arguments "APP_PLATFORM=android-16"
-                abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
-            }
-            // cmake {
-            //     arguments "-DANDROID_APP_PLATFORM=android-16", "-DANDROID_STL=c++_static"
-            //     // abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
-            //     abiFilters 'arm64-v8a'
-            // }
-        }
     }
     buildTypes {
         release {
@@ -36,18 +26,11 @@ android {
         }
     }
     if (!project.hasProperty('EXCLUDE_NATIVE_LIBS')) {
-        sourceSets.main {
-            jniLibs.srcDir 'libs'
+        aaptOptions {
+            // Disable asset compression for fonts.
+            // Without this, text rendering will be very slow.
+            noCompress 'ttf', 'otf'
         }
-        externalNativeBuild {
-            ndkBuild {
-                path 'jni/Android.mk'
-            }
-            // cmake {
-            //     path 'jni/CMakeLists.txt'
-            // }
-        }
-       
     }
     lintOptions {
         abortOnError false
@@ -68,4 +51,5 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 }
