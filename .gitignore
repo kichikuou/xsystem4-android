@@ -1,0 +1,7 @@
+/build/
+/project/app/build/
+/project/app/src/main/assets/
+/project/app/src/main/jniLibs/
+/project/local.properties
+.gradle
+.idea
