@@ -5,10 +5,12 @@ This is a work in progress Android port of [xsystem4](https://github.com/nunuhar
 
 ### Prerequisites
 - Linux or Mac
-- CMake >=3.21
 - Android SDK (Android Studio or Command line tools)
   https://developer.android.com/studio
 - Android NDK >=r23 https://developer.android.com/ndk
+- CMake >=3.21
+- flex
+- bison
 
 ### Build Steps
 1. Set `ANDROID_SDK_ROOT` and `ANDROID_NDK_HOME` environment variables. For
@@ -21,7 +23,7 @@ This is a work in progress Android port of [xsystem4](https://github.com/nunuhar
    ```sh
    git clone https://github.com/kichikuou/xsystem4-android.git
    cd xsystem4-android
-   git submodule update --init -recursive
+   git submodule update --init --recursive
    ```
 3. Run `./build-shared-libs.sh` in the repository root directory. This will build
    native libraries and install them under `project/app/src/main/jniLibs/`.
