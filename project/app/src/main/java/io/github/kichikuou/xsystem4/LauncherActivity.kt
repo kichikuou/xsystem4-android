@@ -15,7 +15,7 @@ import android.widget.TextView
 import java.io.File
 
 class LauncherActivity : Activity() {
-    data class Entry(val path: File, val name: String)
+    data class Entry(val name: String, val path: File, val homedir: File)
     private val games: ArrayList<Entry> = arrayListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,10 +55,11 @@ class LauncherActivity : Activity() {
             if (state != Environment.MEDIA_MOUNTED && state != Environment.MEDIA_MOUNTED_READ_ONLY) {
                 continue
             }
+            val homedir = File(storagePath, ".xsystem4")
             val files = storagePath.listFiles() ?: continue
             for (path in files) {
-                if (path.isDirectory) {
-                    games.add(Entry(path, path.name))
+                if (!path.equals(homedir) && path.isDirectory) {
+                    games.add(Entry(path.name, path, homedir))
                 }
             }
             if (state == Environment.MEDIA_MOUNTED && files.isEmpty()) {
@@ -78,6 +79,7 @@ class LauncherActivity : Activity() {
         val i = Intent()
         i.setClass(applicationContext, XSystem4Activity::class.java)
         i.putExtra(XSystem4Activity.EXTRA_GAME_ROOT, entry.path.path)
+        i.putExtra(XSystem4Activity.EXTRA_XSYSTEM4_HOME, entry.homedir.path)
         startActivity(i)
     }
 }

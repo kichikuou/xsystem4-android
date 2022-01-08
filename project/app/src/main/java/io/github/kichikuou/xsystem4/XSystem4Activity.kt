@@ -1,13 +1,21 @@
 package io.github.kichikuou.xsystem4
 
-import android.util.Log
+import android.os.Bundle
+import android.system.Os
 import org.libsdl.app.SDLActivity
 
 // Intent for this activity must have the following extras:
 // - EXTRA_GAME_ROOT (string): A path to the game installation.
+// - EXTRA_XSYSTEM4_HOME (string): A path to a directory where save files are stored.
 class XSystem4Activity : SDLActivity() {
     companion object {
         const val EXTRA_GAME_ROOT = "GAME_ROOT"
+        const val EXTRA_XSYSTEM4_HOME = "XSYSTEM4_HOME"
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        Os.setenv("XSYSTEM4_HOME", intent.getStringExtra(EXTRA_XSYSTEM4_HOME), true)
     }
 
     override fun getLibraries(): Array<String> {

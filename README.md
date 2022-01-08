@@ -60,5 +60,4 @@ This is in very early stage of development and has many limitations and bugs.
   start (because `mmap` fails with `ENOMEM`).
 - Graphics does not scale to fit the screen.
 - Audio data in Ogg/Vorbis format cannot be played.
-- Save and Load do not work.
 - There is no way to emulate the right mouse button.
