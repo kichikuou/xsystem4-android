@@ -12,7 +12,9 @@ import android.view.MenuItem
 import android.widget.ArrayAdapter
 import android.widget.ListView
 import android.widget.TextView
+import android.widget.Toast
 import java.io.File
+import java.nio.charset.Charset
 
 class LauncherActivity : Activity() {
     data class Entry(val name: String, val path: File, val homedir: File)
@@ -59,7 +61,8 @@ class LauncherActivity : Activity() {
             val files = storagePath.listFiles() ?: continue
             for (path in files) {
                 if (!path.equals(homedir) && path.isDirectory) {
-                    games.add(Entry(path.name, path, homedir))
+                    val title = getGameTitle(path)
+                    games.add(Entry(title, path, homedir))
                 }
             }
             if (state == Environment.MEDIA_MOUNTED && files.isEmpty()) {
@@ -73,6 +76,28 @@ class LauncherActivity : Activity() {
         val items = games.map(Entry::name).toMutableList()
         val listView = findViewById<ListView>(R.id.list)
         listView.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, items)
+    }
+
+    private fun getGameTitle(dir: File): String {
+        var ini = File(dir, "System40.ini")
+        if (!ini.exists())
+            ini = File(dir, "AliceStart.ini")
+        if (!ini.exists()) {
+            val err = getString(R.string.toast_no_ini, dir.path)
+            Log.w("Launcher", err)
+            Toast.makeText(this, err, Toast.LENGTH_LONG).show()
+            return dir.name
+        }
+        val regex = Regex("""GameName\s*=\s*"(.*)"""")
+        for (line in ini.readLines(Charset.forName("Shift_JIS"))) {
+            regex.matchEntire(line)?.let {
+                return it.groupValues[1]
+            }
+        }
+        val err = getString(R.string.toast_no_GameName, ini.path)
+        Log.w("Launcher", err)
+        Toast.makeText(this, err, Toast.LENGTH_LONG).show()
+        return dir.name
     }
 
     private fun launchGame(entry: Entry) {
