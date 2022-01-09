@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">xsystem4</string>
+    <string name="action_refresh">更新</string>
+    <string name="toast_no_GameName">%s に \"GameName\" の項目がありません。</string>
+    <string name="toast_no_ini">%s に System40.ini も AliceStart.ini もありません。</string>
+    <string name="usage">
+        <![CDATA[
+            <h1>ゲームのインストール方法</h1>
+            <p>1. デバイスを USB ケーブルで PC に接続します。</p>
+            <p>2. デバイスで「このデバイスを USB で充電中」の通知をタップします。</p>
+            <p>3. 「USB の接続用途」から「ファイル転送」を選択します。</p>
+            <p>4. PC 側で、ファイル転送のウィンドウが開きます。</p>
+            <p>5. ゲームフォルダ（例: &quot;戦国ランス&quot;）を
+                  <tt>Android/data/io.github.kichikuou.xsystem4/files/</tt> にコピーします。</p>
+            <p>6. 転送を終えたら、PC とデバイスの接続を解除します。</p>
+            <p>7. この画面の右上のメニューボタンをタップして「更新」を選択します。</p>
+        ]]>
+    </string>
+</resources>

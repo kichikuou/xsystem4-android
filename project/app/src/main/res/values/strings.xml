@@ -12,8 +12,8 @@
             <p>4. A file transfer window will open on your computer.</p>
             <p>5. Copy the game folder (e.g. &quot;Sengoku Rance&quot;) into
                   <tt>Android/data/io.github.kichikuou.xsystem4/files/</tt>.</p>
-            <p>6. When you&apos;re done, unplug the USB cable.</p>
-            <p>7. On the device, tap the upper-right menu button and select &quot;Refresh&quot;.</p>
+            <p>6. When you&apos;re done, disconnect the device from your computer.</p>
+            <p>7. Tap the menu button at the upper-right of this screen, and select &quot;Refresh&quot;.</p>
         ]]>
     </string>
 </resources>
