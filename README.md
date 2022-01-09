@@ -1,6 +1,9 @@
 # xsystem4-android
 This is a work in progress Android port of [xsystem4](https://github.com/nunuhara/xsystem4).
 
+## Downloading
+APKs can be found [here](https://github.com/kichikuou/xsystem4-android/releases).
+
 ## Building
 
 ### Prerequisites
