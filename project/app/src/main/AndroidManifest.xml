@@ -61,7 +61,7 @@
          An example Java class can be found in README-android.md
     -->
     <application android:label="@string/app_name"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/ic_launcher"
         android:allowBackup="true" >
 
         <!-- Example of setting SDL hints from AndroidManifest.xml:
