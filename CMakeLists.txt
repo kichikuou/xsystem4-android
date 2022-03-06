@@ -7,6 +7,62 @@ set(stagingDir ${CMAKE_CURRENT_BINARY_DIR}/stage)
 set(androidProjectDir ${CMAKE_CURRENT_LIST_DIR}/project)
 
 ExternalProject_Add(
+  libogg
+  URL https://github.com/xiph/ogg/releases/download/v1.3.5/libogg-1.3.5.tar.xz
+  URL_HASH SHA1=5a368421a636f7faa4c2f662857cb507dffd7c99
+  CMAKE_ARGS -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+             -DCMAKE_ANDROID_ARCH_ABI=${CMAKE_ANDROID_ARCH_ABI}
+             -DANDROID_PLATFORM=${ANDROID_PLATFORM}
+             -DCMAKE_STAGING_PREFIX:PATH=${stagingDir}
+             -DCMAKE_INSTALL_PREFIX:PATH=${stagingDir}
+)
+
+ExternalProject_Add(
+  libvorbis
+  URL https://github.com/xiph/vorbis/releases/download/v1.3.7/libvorbis-1.3.7.tar.xz
+  URL_HASH SHA1=0a2dd71a999656b8091506839e8007a61a8fda1f
+  CMAKE_ARGS -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+             -DCMAKE_ANDROID_ARCH_ABI=${CMAKE_ANDROID_ARCH_ABI}
+             -DANDROID_PLATFORM=${ANDROID_PLATFORM}
+             -DCMAKE_STAGING_PREFIX:PATH=${stagingDir}
+             -DCMAKE_INSTALL_PREFIX:PATH=${stagingDir}
+)
+
+ExternalProject_Add_StepDependencies(libvorbis configure libogg)
+
+# Workaround for libFLAC build error
+if (CMAKE_ANDROID_ARCH_ABI STREQUAL "x86" OR CMAKE_ANDROID_ARCH_ABI STREQUAL "x86-64")
+  set(FLAC_EXTRA_FLAGS -DWITH_ASM=OFF)
+endif ()
+
+ExternalProject_Add(
+  flac
+  URL https://github.com/xiph/flac/releases/download/1.3.4/flac-1.3.4.tar.xz
+  URL_HASH SHA1=99c28482a8b2d81deaf740639e4cb55658427420
+  CMAKE_ARGS -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+             -DCMAKE_ANDROID_ARCH_ABI=${CMAKE_ANDROID_ARCH_ABI}
+             -DANDROID_PLATFORM=${ANDROID_PLATFORM}
+             -DCMAKE_STAGING_PREFIX:PATH=${stagingDir}
+             -DCMAKE_INSTALL_PREFIX:PATH=${stagingDir}
+             -DBUILD_CXXLIBS=OFF
+             ${FLAC_EXTRA_FLAGS}
+  BUILD_COMMAND cmake --build <BINARY_DIR> --target FLAC
+  INSTALL_COMMAND
+)
+
+ExternalProject_Add_StepDependencies(flac configure libogg)
+
+ExternalProject_Add(
+  opus
+  URL https://github.com/xiph/opus/archive/refs/tags/v1.3.1.tar.gz
+  URL_HASH SHA1=9d58962b734ab265ad1154e9a3fe21103b198baa
+  CMAKE_ARGS -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+             -DCMAKE_ANDROID_ARCH_ABI=${CMAKE_ANDROID_ARCH_ABI}
+             -DANDROID_PLATFORM=${ANDROID_PLATFORM}
+             -DCMAKE_STAGING_PREFIX:PATH=${stagingDir}
+)
+
+ExternalProject_Add(
   libjpeg-turbo
   URL https://sourceforge.net/projects/libjpeg-turbo/files/2.1.2/libjpeg-turbo-2.1.2.tar.gz/download
   URL_HASH SHA1=65c51c543b1fbba6db9ff5bee474ccb0b52a929f
@@ -56,7 +112,6 @@ ExternalProject_Add(
     STRIP=${CMAKE_STRIP}
   )
 
-# TODO: Add dependency libraries (Ogg, Vorbis, FLAC and Opus) and enable external libs support.
 ExternalProject_Add(
   libsndfile
   URL https://github.com/libsndfile/libsndfile/releases/download/1.0.31/libsndfile-1.0.31.tar.bz2
@@ -65,8 +120,9 @@ ExternalProject_Add(
              -DCMAKE_ANDROID_ARCH_ABI=${CMAKE_ANDROID_ARCH_ABI}
              -DANDROID_PLATFORM=${ANDROID_PLATFORM}
              -DCMAKE_STAGING_PREFIX:PATH=${stagingDir}
-             -DENABLE_EXTERNAL_LIBS=OFF
   )
+
+ExternalProject_Add_StepDependencies(libsndfile configure libvorbis flac opus)
 
 ExternalProject_Add(
   xsystem4

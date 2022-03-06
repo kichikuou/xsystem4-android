@@ -59,5 +59,4 @@ Android
 ## Known Bugs
 This is in very early stage of development and has many limitations and bugs.
 
-- Audio data in Ogg/Vorbis format cannot be played.
 - There is no way to emulate the right mouse button.
