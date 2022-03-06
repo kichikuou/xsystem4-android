@@ -1,0 +1,31 @@
+name: Build
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      ABI_NAMES: arm64-v8a armeabi-v7a x86 x86_64
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - name: Install Deps
+      run: sudo apt install ninja-build
+
+    - name: Native Build
+      run: ANDROID_NDK_HOME=$ANDROID_NDK_LATEST_HOME ./build-shared-libs.sh
+
+    - name: App Build
+      run: |
+        cd project
+        ./gradlew assembleRelease
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: xsystem4-unsigned-apk
+        path: project/app/build/outputs/apk/release/app-release-unsigned.apk
