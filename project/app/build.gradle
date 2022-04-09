@@ -17,7 +17,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 31
         versionCode 1
-        versionName "0.0.0"
+        versionName calcVersionName()
     }
     buildTypes {
         release {
@@ -52,4 +52,8 @@ android {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+}
+
+static String calcVersionName() {
+    "git rev-parse --short HEAD".execute().text.trim() + '-git'
 }
