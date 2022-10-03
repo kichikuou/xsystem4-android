@@ -25,13 +25,6 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-    if (!project.hasProperty('EXCLUDE_NATIVE_LIBS')) {
-        aaptOptions {
-            // Disable asset compression for fonts.
-            // Without this, text rendering will be very slow.
-            noCompress 'ttf', 'otf'
-        }
-    }
     lintOptions {
         abortOnError false
     }
