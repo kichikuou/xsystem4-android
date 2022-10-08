@@ -141,7 +141,6 @@ ExternalProject_Add_StepDependencies(xsystem4 configure
 install(
   FILES ${stagingDir}/lib/libxsystem4.so
         ${stagingDir}/lib/libSDL2.so
-        ${stagingDir}/lib/libSDL2_ttf.so
         ${stagingDir}/lib/libcglm.so
   DESTINATION ${androidProjectDir}/app/src/main/jniLibs/${CMAKE_ANDROID_ARCH_ABI})
 
