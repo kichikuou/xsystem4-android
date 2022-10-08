@@ -17,6 +17,7 @@ for abi in ${ABI_NAMES}; do
 	  -DCMAKE_BUILD_TYPE=Release \
 	  -DCMAKE_ANDROID_ARCH_ABI=${abi} \
 	  -DANDROID_PLATFORM=${ANDROID_API_LEVEL} \
+	  -DANDROID_USE_LEGACY_TOOLCHAIN_FILE=OFF \
 	  -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK_HOME}/build/cmake/android.toolchain.cmake
     ninja -C build/${abi} install
 done
