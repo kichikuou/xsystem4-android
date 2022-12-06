@@ -31,18 +31,16 @@ ExternalProject_Add(
 
 ExternalProject_Add_StepDependencies(libvorbis configure libogg)
 
-# Workaround for libFLAC build error
-if (CMAKE_ANDROID_ARCH_ABI STREQUAL "x86" OR CMAKE_ANDROID_ARCH_ABI STREQUAL "x86-64")
-  set(FLAC_EXTRA_FLAGS -DWITH_ASM=OFF)
-endif ()
-
 ExternalProject_Add(
   flac
-  URL https://github.com/xiph/flac/releases/download/1.3.4/flac-1.3.4.tar.xz
-  URL_HASH SHA1=99c28482a8b2d81deaf740639e4cb55658427420
+  URL https://github.com/xiph/flac/releases/download/1.4.2/flac-1.4.2.tar.xz
+  URL_HASH SHA256=e322d58a1f48d23d9dd38f432672865f6f79e73a6f9cc5a5f57fcaa83eb5a8e4
   CMAKE_ARGS ${COMMON_CMAKE_ARGS}
              -DBUILD_CXXLIBS=OFF
-             ${FLAC_EXTRA_FLAGS}
+             -DBUILD_PROGRAMS=OFF
+             -DBUILD_EXAMPLES=OFF
+             -DBUILD_TESTING=OFF
+             -DBUILD_DOCS=OFF
   BUILD_COMMAND cmake --build <BINARY_DIR> --target FLAC
   INSTALL_COMMAND
 )
