@@ -1,5 +1,6 @@
 # xsystem4-android
 This is a work in progress Android port of [xsystem4](https://github.com/nunuhara/xsystem4).
+This is in very early stage of development and has many limitations and bugs.
 
 ## Downloading
 APKs can be found [here](https://github.com/kichikuou/xsystem4-android/releases).
@@ -20,7 +21,7 @@ APKs can be found [here](https://github.com/kichikuou/xsystem4-android/releases)
    example, if you have installed Android Studio on Mac:
    ```sh
    export ANDROID_SDK_ROOT=~/Library/Android/sdk
-   export ANDROID_NDK_HOME=~/Library/Android/sdk/ndk/23.1.7779620
+   export ANDROID_NDK_HOME=~/Library/Android/sdk/ndk/25.1.8937393
    ```
 2. Clone this repository.
    ```sh
@@ -56,7 +57,5 @@ Android
             ...
 ```
 
-## Known Bugs
-This is in very early stage of development and has many limitations and bugs.
-
-- There is no way to emulate the right mouse button.
+To simulate right-click during a game, tap the black bars on the left/light or
+top/bottom of the screen.
