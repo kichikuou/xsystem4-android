@@ -57,5 +57,5 @@ Android
             ...
 ```
 
-To simulate right-click during a game, tap the black bars on the left/light or
+To simulate right-click during a game, tap the black bars on the left/right or
 top/bottom of the screen.
