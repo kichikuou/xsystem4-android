@@ -1,4 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
+
+# Rebuild external projects when download URL changes
+if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
+  cmake_policy(SET CMP0135 NEW)
+endif()
+
 project(xsystem4-android)
 
 include(ExternalProject)
