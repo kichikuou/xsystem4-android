@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">xsystem4</string>
     <string name="action_refresh">Refresh</string>
+    <string name="action_licenses">Open source licenses</string>
     <string name="toast_no_GameName">%s has no \"GameName\" field.</string>
     <string name="toast_no_ini">There is neither \"System40.ini\" nor \"AliceStart.ini\" in %s.</string>
     <string name="usage">

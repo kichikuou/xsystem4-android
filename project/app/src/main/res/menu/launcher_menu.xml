@@ -3,4 +3,7 @@
     <item
         android:id="@+id/refresh"
         android:title="@string/action_refresh" />
+    <item
+        android:id="@+id/licenses"
+        android:title="@string/action_licenses" />
 </menu>

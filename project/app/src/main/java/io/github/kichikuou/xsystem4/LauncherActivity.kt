@@ -45,6 +45,11 @@ class LauncherActivity : Activity() {
                 updateGameList()
                 true
             }
+            R.id.licenses -> {
+                val intent = Intent(this, LicensesMenuActivity::class.java)
+                startActivity(intent)
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }

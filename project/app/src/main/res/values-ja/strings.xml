@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">xsystem4</string>
     <string name="action_refresh">更新</string>
+    <string name="action_licenses">オープンソースライセンス</string>
     <string name="toast_no_GameName">%s に \"GameName\" の項目がありません。</string>
     <string name="toast_no_ini">%s に System40.ini も AliceStart.ini もありません。</string>
     <string name="usage">

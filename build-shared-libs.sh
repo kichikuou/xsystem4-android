@@ -20,4 +20,5 @@ for abi in ${ABI_NAMES}; do
 	  -DANDROID_USE_LEGACY_TOOLCHAIN_FILE=OFF \
 	  -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK_HOME}/build/cmake/android.toolchain.cmake
     ninja -C build/${abi} install
+    ./collect-licenses.sh build/${abi} project/app/src/main/assets/licenses
 done
