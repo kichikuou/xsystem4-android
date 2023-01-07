@@ -9,7 +9,7 @@ jobs:
       ABI_NAMES: arm64-v8a armeabi-v7a x86 x86_64
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         submodules: recursive
 
@@ -22,10 +22,15 @@ jobs:
     - name: App Build
       run: |
         cd project
+        echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > keystore.jks
         ./gradlew assembleRelease
+      env:
+        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v3
       with:
-        name: xsystem4-unsigned-apk
-        path: project/app/build/outputs/apk/release/app-release-unsigned.apk
+        name: xsystem4-apk
+        path: project/app/build/outputs/apk/release/app-release.apk

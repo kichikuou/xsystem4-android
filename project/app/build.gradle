@@ -16,13 +16,24 @@ android {
         }
         minSdkVersion 21
         targetSdkVersion 31
+        // So that stripReleaseDebugSymbols task works
+        ndkPath System.getenv("ANDROID_NDK_HOME")
         versionCode 1
         versionName calcVersionName()
+    }
+    signingConfigs {
+        release {
+            storeFile rootProject.file('keystore.jks')
+            storePassword System.getenv('KEYSTORE_PASSWORD')
+            keyAlias System.getenv('KEY_ALIAS')
+            keyPassword System.getenv('KEY_PASSWORD')
+        }
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
     lintOptions {
