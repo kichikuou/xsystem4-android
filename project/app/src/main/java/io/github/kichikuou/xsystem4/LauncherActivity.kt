@@ -1,6 +1,7 @@
 package io.github.kichikuou.xsystem4
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import android.media.MediaScannerConnection
 import android.os.Bundle
@@ -43,6 +44,12 @@ class LauncherActivity : Activity() {
         return when (item.itemId) {
             R.id.refresh -> {
                 updateGameList()
+                true
+            }
+            R.id.help -> {
+                AlertDialog.Builder(this)
+                    .setMessage(Html.fromHtml(getString(R.string.usage)))
+                    .show()
                 true
             }
             R.id.licenses -> {
