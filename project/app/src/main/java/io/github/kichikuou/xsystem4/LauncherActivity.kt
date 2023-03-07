@@ -18,7 +18,7 @@ import java.io.File
 import java.nio.charset.Charset
 
 class LauncherActivity : Activity() {
-    data class Entry(val name: String, val path: File, val homedir: File)
+    data class Entry(val name: String, val path: File, val homedir: File, val hasError: Boolean)
     private val games: ArrayList<Entry> = arrayListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,7 +74,11 @@ class LauncherActivity : Activity() {
             for (path in files) {
                 if (!path.equals(homedir) && path.isDirectory) {
                     val title = getGameTitle(path)
-                    games.add(Entry(title, path, homedir))
+                    if (title != null) {
+                        games.add(Entry(title, path, homedir, false))
+                    } else {
+                        games.add(Entry(path.name + '?', path, homedir, true))
+                    }
                 }
             }
             if (state == Environment.MEDIA_MOUNTED && files.isEmpty()) {
@@ -90,15 +94,13 @@ class LauncherActivity : Activity() {
         listView.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, items)
     }
 
-    private fun getGameTitle(dir: File): String {
+    private fun getGameTitle(dir: File): String? {
         var ini = File(dir, "System40.ini")
         if (!ini.exists())
             ini = File(dir, "AliceStart.ini")
         if (!ini.exists()) {
-            val err = getString(R.string.toast_no_ini, dir.path)
-            Log.w("Launcher", err)
-            Toast.makeText(this, err, Toast.LENGTH_LONG).show()
-            return dir.name
+            Log.w("Launcher", "Neither System40.ini nor AliceStart.ini in ${dir.path}")
+            return null
         }
         val regex = Regex("""GameName\s*=\s*"(.*)"""")
         for (line in ini.readLines(Charset.forName("Shift_JIS"))) {
@@ -113,6 +115,14 @@ class LauncherActivity : Activity() {
     }
 
     private fun launchGame(entry: Entry) {
+        if (entry.hasError) {
+            AlertDialog.Builder(this)
+                .setTitle(R.string.error)
+                .setMessage(getString(R.string.toast_no_ini, entry.path))
+                .setPositiveButton("OK", null)
+                .show()
+            return
+        }
         val i = Intent()
         i.setClass(applicationContext, XSystem4Activity::class.java)
         i.putExtra(XSystem4Activity.EXTRA_GAME_ROOT, entry.path.path)
