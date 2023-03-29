@@ -58,4 +58,5 @@ Android
 ```
 
 To simulate right-click during a game, tap the black bars on the left/right or
-top/bottom of the screen.
+top/bottom of the screen. You can also simulate the Ctrl key (message skip) by
+touch-and-hold.
