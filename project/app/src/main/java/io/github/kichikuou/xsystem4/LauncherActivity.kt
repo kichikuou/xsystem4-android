@@ -6,6 +6,7 @@ import android.content.Intent
 import android.media.MediaScannerConnection
 import android.os.Bundle
 import android.os.Environment
+import android.system.Os
 import android.text.Html
 import android.util.Log
 import android.view.Menu
@@ -88,6 +89,12 @@ class LauncherActivity : Activity() {
                 dummyFile.writeText("Create a subfolder here that stores game files.")
                 MediaScannerConnection.scanFile(this, arrayOf(dummyFile.absolutePath), null, null)
             }
+            // Make sure that save directories are group-readable (so that they can be transferred
+            // via MTP), while old xsystem4 created them with permission 0700.
+            // TODO: Remove this after some transition period.
+            if (homedir.exists()) {
+                makeGroupReadable(homedir)
+            }
         }
         val items = games.map(Entry::name).toMutableList()
         val listView = findViewById<ListView>(R.id.list)
@@ -129,4 +136,15 @@ class LauncherActivity : Activity() {
         i.putExtra(XSystem4Activity.EXTRA_XSYSTEM4_HOME, entry.homedir.path)
         startActivity(i)
     }
+}
+
+fun makeGroupReadable(dir: File) {
+    if (Os.stat(dir.path).st_mode shr 3 and 4 != 0) {
+        return  // Already group-readable.
+    }
+    Log.i("Launcher", "Copying ${dir.path} to make it group-readable")
+    val tmpDir = File(dir.parent, ".xsystem4_temp")
+    dir.copyRecursively(tmpDir, true)
+    dir.deleteRecursively()
+    tmpDir.renameTo(dir)
 }
