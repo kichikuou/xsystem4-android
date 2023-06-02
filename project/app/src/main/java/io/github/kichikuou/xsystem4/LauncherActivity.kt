@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.media.MediaScannerConnection
@@ -22,7 +23,11 @@ import android.widget.ImageView
 import android.widget.ListView
 import android.widget.TextView
 import java.io.File
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.nio.charset.Charset
+
+const val ICON_SIZE_DP = 40
 
 private data class Item(val name: String, val path: File, val homedir: File, val icon: File?, val error: String?) {
     companion object {
@@ -60,6 +65,35 @@ private data class Item(val name: String, val path: File, val homedir: File, val
             }
             return null
         }
+    }
+
+    fun getIconBitmap(reqSize: Int): Bitmap? {
+        val bytes = icon?.readBytes() ?: return null
+        val buf = ByteBuffer.wrap(bytes)
+        buf.order(ByteOrder.LITTLE_ENDIAN)
+        buf.skip(4)
+        val numIcons = buf.short.toInt()
+
+        // If the icon contains multiple images, convert it to an icon containing only the image
+        // closest to the requested size.
+        if (numIcons > 1) {
+            val bestMatchEntry = Array(numIcons) {
+                val entryBytes = ByteArray(16)
+                buf.get(entryBytes)
+                entryBytes
+            }.minWith(compareBy({
+                // Compare the sizes first,
+                val width = if (it[0].toInt() == 0) 256 else it[0].toInt()
+                kotlin.math.abs(width - reqSize)
+            }, {
+                // then pick the one with the highest number of bits per pixel.
+                -it[6]
+            }))
+            buf.position(4)
+            buf.putShort(1)
+            buf.put(bestMatchEntry)
+        }
+        return BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
     }
 }
 
@@ -105,9 +139,8 @@ private class GameListAdapter(activity: Activity) : BaseAdapter() {
         val item = items[position]
         val view = convertView
             ?: LayoutInflater.from(context).inflate(R.layout.launcher_item, parent, false)
-        if (item.icon != null) {
-            val bmp = BitmapFactory.decodeFile(item.icon.path)
-            view.findViewById<ImageView>(R.id.icon).setImageBitmap(bmp)
+        item.getIconBitmap((ICON_SIZE_DP * context.resources.displayMetrics.density).toInt())?.let {
+            view.findViewById<ImageView>(R.id.icon).setImageBitmap(it)
         }
         val title = view.findViewById<TextView>(R.id.title)
         title.text = item.name
