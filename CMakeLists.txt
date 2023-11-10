@@ -39,14 +39,16 @@ ExternalProject_Add_StepDependencies(libvorbis configure libogg)
 
 ExternalProject_Add(
   flac
-  URL https://github.com/xiph/flac/releases/download/1.4.2/flac-1.4.2.tar.xz
-  URL_HASH SHA256=e322d58a1f48d23d9dd38f432672865f6f79e73a6f9cc5a5f57fcaa83eb5a8e4
+  URL https://github.com/xiph/flac/releases/download/1.4.3/flac-1.4.3.tar.xz
+  URL_HASH SHA256=6c58e69cd22348f441b861092b825e591d0b822e106de6eb0ee4d05d27205b70
   CMAKE_ARGS ${COMMON_CMAKE_ARGS}
              -DBUILD_CXXLIBS=OFF
              -DBUILD_PROGRAMS=OFF
              -DBUILD_EXAMPLES=OFF
              -DBUILD_TESTING=OFF
              -DBUILD_DOCS=OFF
+             # TODO: Remove this when setting ANDROID_PLATFORM to >=24
+             -DCMAKE_C_FLAGS="-Wno-error=implicit-function-declaration"
   BUILD_COMMAND cmake --build <BINARY_DIR> --target FLAC
   INSTALL_COMMAND
 )
@@ -55,8 +57,8 @@ ExternalProject_Add_StepDependencies(flac configure libogg)
 
 ExternalProject_Add(
   opus
-  URL https://github.com/xiph/opus/archive/refs/tags/v1.3.1.tar.gz
-  URL_HASH SHA1=9d58962b734ab265ad1154e9a3fe21103b198baa
+  URL https://github.com/xiph/opus/releases/download/v1.4/opus-1.4.tar.gz
+  URL_HASH SHA1=c53b3a74fc26fb2c2314afe958be30d169bd029a
   CMAKE_ARGS ${COMMON_CMAKE_ARGS}
 )
 
