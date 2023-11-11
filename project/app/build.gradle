@@ -9,13 +9,13 @@ else {
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 31
+    if (buildAsApplication) {
+        namespace "io.github.kichikuou.xsystem4"
+    }
+    compileSdkVersion 34
     defaultConfig {
-        if (buildAsApplication) {
-            applicationId "io.github.kichikuou.xsystem4"
-        }
         minSdkVersion 21
-        targetSdkVersion 31
+        targetSdkVersion 34
         // So that stripReleaseDebugSymbols task works
         ndkPath System.getenv("ANDROID_NDK_HOME")
         versionCode 1
@@ -38,10 +38,10 @@ android {
             }
         }
     }
-    lintOptions {
+    lint {
         abortOnError false
     }
-    
+
     if (buildAsLibrary) {
         libraryVariants.all { variant ->
             variant.outputs.each { output ->
