@@ -139,14 +139,11 @@ private class GameListAdapter(activity: Activity) : BaseAdapter() {
         val item = items[position]
         val view = convertView
             ?: LayoutInflater.from(context).inflate(R.layout.launcher_item, parent, false)
-        item.getIconBitmap((ICON_SIZE_DP * context.resources.displayMetrics.density).toInt())?.let {
-            view.findViewById<ImageView>(R.id.icon).setImageBitmap(it)
-        }
+        val icon = item.getIconBitmap((ICON_SIZE_DP * context.resources.displayMetrics.density).toInt())
+        view.findViewById<ImageView>(R.id.icon).setImageBitmap(icon)
         val title = view.findViewById<TextView>(R.id.title)
         title.text = item.name
-        if (item.error != null) {
-            title.setTextColor(Color.GRAY)
-        }
+        title.setTextColor(if (item.error != null) Color.GRAY else Color.BLACK)
         return view
     }
 }
