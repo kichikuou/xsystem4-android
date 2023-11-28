@@ -61,6 +61,12 @@ Android
             ...
 ```
 
-To simulate a right-click during the game, tap the black bars on the left/right
-or top/bottom of the screen. You can also simulate pressing the Ctrl key (to
-skip messages) by touching and holding.
+## Touch Gestures
+The following operations can be simulated using touch gestures:
+
+| Operation | Touch Gesture |
+| --------- | ------------- |
+| Left-click      | Tap |
+| Right-click     | Tap the black bars outside the game screen |
+| Ctrl key        | Touch and hold |
+| Scroll up/down  | Two-finger swipe down/up |
