@@ -102,7 +102,7 @@ private class GameListAdapter(activity: Activity) : BaseAdapter() {
     private val context: Context = activity
 
     init {
-        for (storagePath in activity.getExternalFilesDirs(null)) {
+        for (storagePath in activity.getExternalFilesDirs(null).filterNotNull()) {
             val state = Environment.getExternalStorageState(storagePath)
             Log.i("launcher", "${storagePath}: $state")
             if (state != Environment.MEDIA_MOUNTED && state != Environment.MEDIA_MOUNTED_READ_ONLY) {
