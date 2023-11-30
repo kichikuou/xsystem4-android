@@ -2,10 +2,17 @@
     <string name="app_name">xsystem4</string>
     <string name="action_refresh">更新</string>
     <string name="action_help">使い方</string>
+    <string name="action_install_from_zip">ZIPからインストール</string>
     <string name="action_licenses">オープンソースライセンス</string>
+    <string name="choose_a_file">ファイルを選択</string>
+    <string name="ok">OK</string>
     <string name="error">エラー</string>
+    <string name="install_dialog_title">インストール中…</string>
+    <string name="install_progress">%s を展開中</string>
     <string name="toast_no_GameName">%s に \"GameName\" の項目がありません。</string>
     <string name="toast_no_ini">%s に System40.ini も AliceStart.ini もありません。</string>
+    <string name="zip_extraction_error">ZIP の展開に失敗しました。</string>
+    <string name="zip_no_ini">ZIPアーカイブ内に System40.ini も AliceStart.ini もありません。</string>
     <string name="usage">
         <![CDATA[
             <h1>ゲームのインストール方法</h1>

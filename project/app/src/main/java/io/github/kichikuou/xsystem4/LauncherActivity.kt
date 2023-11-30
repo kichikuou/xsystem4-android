@@ -2,9 +2,11 @@ package io.github.kichikuou.xsystem4
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.text.Html
 import android.view.LayoutInflater
@@ -18,13 +20,15 @@ import android.widget.ListView
 import android.widget.TextView
 
 private const val ICON_SIZE_DP = 40
+private const val INSTALL_REQUEST = 1
+private const val STATE_PROGRESS_TEXT = "progressText"
 
 private class GameListAdapter(activity: Activity, refresh: Boolean) : BaseAdapter() {
     companion object {
         private var savedGameList: GameList? = null
     }
     private val context: Context = activity
-    private val gameList: GameList
+    val gameList: GameList
 
     init {
         if (savedGameList == null || refresh) {
@@ -50,13 +54,22 @@ private class GameListAdapter(activity: Activity, refresh: Boolean) : BaseAdapte
     }
 }
 
-class LauncherActivity : Activity() {
+class LauncherActivity : Activity(), GameListObserver {
+    private lateinit var adapter: GameListAdapter
+    private var progressDialog: Dialog? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.launcher)
 
+        adapter = GameListAdapter(this, false)
+        adapter.gameList.observer = this
+        if (adapter.gameList.isInstalling) {
+            showProgressDialog(savedInstanceState)
+        }
+
         val listView = findViewById<ListView>(R.id.list)
-        listView.adapter = GameListAdapter(this, false)
+        listView.adapter = adapter
         listView.emptyView = findViewById(R.id.empty)
         findViewById<TextView>(R.id.usage).text = Html.fromHtml(getString(R.string.usage))
         listView.setOnItemClickListener { _, _, pos, _ ->
@@ -64,16 +77,39 @@ class LauncherActivity : Activity() {
         }
     }
 
+    override fun onDestroy() {
+        adapter.gameList.observer = null
+        dismissProgressDialog()
+        super.onDestroy()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        progressDialog?.let {
+            outState.putCharSequence(STATE_PROGRESS_TEXT, it.findViewById<TextView>(R.id.text).text)
+        }
+        super.onSaveInstanceState(outState)
+    }
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.launcher_menu, menu)
+        // The charset parameter of ZipInputStream is not supported on Android <7.0.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+            menu.findItem(R.id.install_from_zip).isEnabled = false
+        }
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.refresh -> {
-                val listView = findViewById<ListView>(R.id.list)
-                listView.adapter = GameListAdapter(this, true)
+                adapter = GameListAdapter(this, true)
+                findViewById<ListView>(R.id.list).adapter = adapter
+                true
+            }
+            R.id.install_from_zip -> {
+                val i = Intent(Intent.ACTION_GET_CONTENT)
+                i.type = "application/zip"
+                startActivityForResult(Intent.createChooser(i, getString(R.string.choose_a_file)), INSTALL_REQUEST)
                 true
             }
             R.id.help -> {
@@ -91,6 +127,36 @@ class LauncherActivity : Activity() {
         }
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (resultCode != RESULT_OK)
+            return
+        val uri = data?.data ?: return
+        when (requestCode) {
+            INSTALL_REQUEST -> {
+                val input = contentResolver.openInputStream(uri) ?: return
+                showProgressDialog()
+                adapter.gameList.install(input, this)
+            }
+        }
+    }
+
+    override fun onInstallProgress(path: String) {
+        progressDialog?.findViewById<TextView>(R.id.text)?.text = getString(R.string.install_progress, path)
+    }
+
+    override fun onInstallSuccess() {
+        dismissProgressDialog()
+        adapter.notifyDataSetChanged()
+    }
+
+    override fun onInstallFailure(msgId: Int) {
+        dismissProgressDialog()
+        AlertDialog.Builder(this).setTitle(R.string.error)
+            .setMessage(msgId)
+            .setPositiveButton(R.string.ok) {_, _ -> }
+            .show()
+    }
+
     private fun launchGame(item: Item) {
         if (item.error != null) {
             AlertDialog.Builder(this)
@@ -105,5 +171,23 @@ class LauncherActivity : Activity() {
         i.putExtra(XSystem4Activity.EXTRA_GAME_ROOT, item.path.path)
         i.putExtra(XSystem4Activity.EXTRA_XSYSTEM4_HOME, item.homedir.path)
         startActivity(i)
+    }
+
+    private fun showProgressDialog(savedInstanceState: Bundle? = null) {
+        progressDialog = Dialog(this)
+        progressDialog!!.apply {
+            setTitle(R.string.install_dialog_title)
+            setCancelable(false)
+            setContentView(R.layout.progress_dialog)
+            savedInstanceState?.let {
+                findViewById<TextView>(R.id.text)?.text = it.getCharSequence(STATE_PROGRESS_TEXT)
+            }
+            show()
+        }
+    }
+
+    private fun dismissProgressDialog() {
+        progressDialog?.dismiss()
+        progressDialog = null
     }
 }

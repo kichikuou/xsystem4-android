@@ -1,17 +1,32 @@
 package io.github.kichikuou.xsystem4
 
+import android.annotation.TargetApi
 import android.app.Activity
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.MediaScannerConnection
+import android.os.Build
 import android.os.Environment
 import android.system.Os
 import android.util.Log
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.charset.Charset
+import java.util.zip.ZipInputStream
+
+interface GameListObserver {
+    fun onInstallProgress(path: String)
+    fun onInstallSuccess()
+    fun onInstallFailure(msgId: Int)
+}
 
 data class Item(val name: String, val path: File, val homedir: File, val icon: File?, val error: String?) {
     companion object {
@@ -83,8 +98,14 @@ data class Item(val name: String, val path: File, val homedir: File, val icon: F
 
 class GameList(activity: Activity) {
     private val items: ArrayList<Item> = arrayListOf()
+    private val storageDirs: ArrayList<File> = arrayListOf()
     operator fun get(index: Int): Item = items[index]
     val size: Int get() = items.size
+    var observer: GameListObserver? = null
+    var isInstalling = false
+        private set
+
+    class InstallFailureException(val msgId: Int) : Exception()
 
     init {
         for (storagePath in activity.getExternalFilesDirs(null).filterNotNull()) {
@@ -93,10 +114,11 @@ class GameList(activity: Activity) {
             if (state != Environment.MEDIA_MOUNTED && state != Environment.MEDIA_MOUNTED_READ_ONLY) {
                 continue
             }
+            storageDirs.add(storagePath)
             val homedir = File(storagePath, ".xsystem4")
             val files = storagePath.listFiles() ?: continue
             for (path in files) {
-                if (!path.equals(homedir) && path.isDirectory) {
+                if (!path.name.startsWith(".") && path.isDirectory) {
                     items.add(Item.fromDirectory(path, homedir, activity))
                 }
             }
@@ -105,7 +127,12 @@ class GameList(activity: Activity) {
                 // https://issuetracker.google.com/issues/37071807
                 val dummyFile = File(storagePath, "dummy.txt")
                 dummyFile.writeText("Create a subfolder here that stores game files.")
-                MediaScannerConnection.scanFile(activity, arrayOf(dummyFile.absolutePath), null, null)
+                MediaScannerConnection.scanFile(
+                    activity,
+                    arrayOf(dummyFile.absolutePath),
+                    null,
+                    null
+                )
             }
             // Make sure that save directories are group-readable (so that they can be transferred
             // via MTP), while old xsystem4 created them with permission 0700.
@@ -114,6 +141,66 @@ class GameList(activity: Activity) {
                 makeGroupReadable(homedir)
             }
         }
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun install(input: InputStream, activity: Activity) {
+        isInstalling = true
+        GlobalScope.launch(Dispatchers.Main) {
+            try {
+                val storagePath = storageDirs[0]
+                val path = withContext(Dispatchers.IO) {
+                    doInstall(input, storagePath) { msg ->
+                        GlobalScope.launch(Dispatchers.Main) {
+                            observer?.onInstallProgress(msg)
+                        }
+                    }
+                }
+                val homedir = File(storagePath, ".xsystem4")
+                items.add(Item.fromDirectory(path, homedir, activity))
+                observer?.onInstallSuccess()
+            } catch (e: InstallFailureException) {
+                observer?.onInstallFailure(e.msgId)
+            } catch (e: Exception) {
+                Log.e("launcher", "Failed to extract ZIP", e)
+                observer?.onInstallFailure(R.string.zip_extraction_error)
+            }
+            isInstalling = false
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.N)
+    private fun doInstall(input: InputStream, storagePath: File, progressCallback: (String) -> Unit): File {
+        val tempDir = File(storagePath, ".install_temp")
+        tempDir.deleteRecursively()
+        val zip = ZipInputStream(input.buffered(), Charset.forName("Shift_JIS"))
+        var gameRoot: File? = null
+        zip.use {
+            while (true) {
+                val entry = zip.nextEntry ?: break
+                if (entry.isDirectory) {
+                    continue
+                }
+                val path = File(tempDir, entry.name)
+                Log.i("GameList", "Extracting ${entry.name}")
+                progressCallback(entry.name)
+                path.parentFile?.mkdirs()
+                path.outputStream().buffered().use { zip.copyTo(it) }
+
+                if (path.name == "System40.ini" || path.name == "AliceStart.ini") {
+                    gameRoot = path.parentFile
+                }
+            }
+        }
+        val srcDir = gameRoot ?: throw InstallFailureException(R.string.zip_no_ini)
+        var dstDir = File(storagePath, srcDir.name)
+        var i = 1
+        while (dstDir.exists()) {
+            dstDir = File(storagePath, "${srcDir.name} (${i++})")
+        }
+        srcDir.renameTo(dstDir)
+        tempDir.deleteRecursively()
+        return dstDir
     }
 }
 

@@ -4,6 +4,9 @@
         android:id="@+id/refresh"
         android:title="@string/action_refresh" />
     <item
+        android:id="@+id/install_from_zip"
+        android:title="@string/action_install_from_zip" />
+    <item
         android:id="@+id/help"
         android:title="@string/action_help" />
     <item
