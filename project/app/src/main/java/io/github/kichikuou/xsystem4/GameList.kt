@@ -202,6 +202,11 @@ class GameList(activity: Activity) {
         tempDir.deleteRecursively()
         return dstDir
     }
+
+    fun uninstall(item: Item) {
+        item.path.deleteRecursively()
+        items.remove(item)
+    }
 }
 
 private fun makeGroupReadable(dir: File) {

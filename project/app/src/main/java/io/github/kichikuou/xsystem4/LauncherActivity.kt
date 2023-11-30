@@ -73,7 +73,10 @@ class LauncherActivity : Activity(), GameListObserver {
         listView.emptyView = findViewById(R.id.empty)
         findViewById<TextView>(R.id.usage).text = Html.fromHtml(getString(R.string.usage))
         listView.setOnItemClickListener { _, _, pos, _ ->
-            launchGame(listView.adapter.getItem(pos) as Item)
+            onListItemClick(listView.adapter.getItem(pos) as Item)
+        }
+        listView.setOnItemLongClickListener { _, _, pos, _ ->
+            onItemLongClick(listView.adapter.getItem(pos) as Item)
         }
     }
 
@@ -157,7 +160,7 @@ class LauncherActivity : Activity(), GameListObserver {
             .show()
     }
 
-    private fun launchGame(item: Item) {
+    private fun onListItemClick(item: Item) {
         if (item.error != null) {
             AlertDialog.Builder(this)
                 .setTitle(R.string.error)
@@ -171,6 +174,18 @@ class LauncherActivity : Activity(), GameListObserver {
         i.putExtra(XSystem4Activity.EXTRA_GAME_ROOT, item.path.path)
         i.putExtra(XSystem4Activity.EXTRA_XSYSTEM4_HOME, item.homedir.path)
         startActivity(i)
+    }
+
+    private fun onItemLongClick(item: Item): Boolean {
+        AlertDialog.Builder(this).setTitle(R.string.uninstall_dialog_title)
+            .setMessage(getString(R.string.uninstall_dialog_message, item.name))
+            .setPositiveButton(R.string.ok) {_, _ ->
+                adapter.gameList.uninstall(item)
+                adapter.notifyDataSetChanged()
+            }
+            .setNegativeButton(R.string.cancel) {_, _ -> }
+            .show()
+        return true
     }
 
     private fun showProgressDialog(savedInstanceState: Bundle? = null) {

@@ -6,11 +6,14 @@
     <string name="action_licenses">Open source licenses</string>
     <string name="choose_a_file">Choose a file</string>
     <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
     <string name="error">Error</string>
     <string name="install_dialog_title">Installing…</string>
     <string name="install_progress">Extracting %s</string>
     <string name="toast_no_GameName">%s has no \"GameName\" field.</string>
     <string name="toast_no_ini">There is neither \"System40.ini\" nor \"AliceStart.ini\" in %s.</string>
+    <string name="uninstall_dialog_message">Uninstall \"%s\"?</string>
+    <string name="uninstall_dialog_title">Confirm</string>
     <string name="zip_extraction_error">Failed to extract ZIP.</string>
     <string name="zip_no_ini">There is neither \"System40.ini\" nor \"AliceStart.ini\" in the ZIP archive.</string>
     <string name="usage">
