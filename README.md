@@ -3,6 +3,8 @@ This is a work-in-progress Android port of
 [xsystem4](https://github.com/nunuhara/xsystem4). It is in the very early
 stages of development and has many limitations and bugs.
 
+Android 5.0 or higher is required.
+
 ## Downloading
 APKs are available
 [here](https://github.com/kichikuou/xsystem4-android/releases).
@@ -24,7 +26,7 @@ APKs are available
    example, if you have installed Android Studio on a Mac:
    ```sh
    export ANDROID_SDK_ROOT=~/Library/Android/sdk
-   export ANDROID_NDK_HOME=~/Library/Android/sdk/ndk/25.1.8937393
+   export ANDROID_NDK_HOME=~/Library/Android/sdk/ndk/26.1.10909125
    ```
 2. Clone this repository:
    ```sh
@@ -60,6 +62,9 @@ Android
             DungeonData.dlf
             ...
 ```
+
+Alternatively, you can install a game from a ZIP archive on your device. Select
+"Install from ZIP" from the menu in the upper right corner.
 
 ## Touch Gestures
 The following operations can be simulated using touch gestures:
