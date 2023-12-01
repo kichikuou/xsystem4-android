@@ -5,6 +5,7 @@ import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Context
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
@@ -26,6 +27,7 @@ private const val STATE_PROGRESS_TEXT = "progressText"
 private class GameListAdapter(activity: Activity, refresh: Boolean) : BaseAdapter() {
     companion object {
         private var savedGameList: GameList? = null
+        private var defaultTextColor: ColorStateList? = null
     }
     private val context: Context = activity
     val gameList: GameList
@@ -48,8 +50,13 @@ private class GameListAdapter(activity: Activity, refresh: Boolean) : BaseAdapte
         val icon = item.getIconBitmap((ICON_SIZE_DP * context.resources.displayMetrics.density).toInt())
         view.findViewById<ImageView>(R.id.icon).setImageBitmap(icon)
         val title = view.findViewById<TextView>(R.id.title)
+        if (defaultTextColor == null)
+            defaultTextColor = title.textColors
         title.text = item.name
-        title.setTextColor(if (item.error != null) Color.GRAY else Color.BLACK)
+        if (item.error != null)
+            title.setTextColor(Color.GRAY)
+        else
+            title.setTextColor(defaultTextColor)
         return view
     }
 }
