@@ -55,12 +55,16 @@ data class Item(val name: String, val path: File, val homedir: File, val icon: F
             dir.listFiles()?.forEach {
                 if (it.extension == "ico") { return it }
             }
-            dir.listFiles { file -> file.extension == "exe" }?.forEach { exeFile ->
-                PEResourceExtractor.create(exeFile)?.extractIcon()?.let { bytes ->
-                    val f = File(dir, ".xsystem4.ico")
-                    f.writeBytes(bytes)
-                    return f
+            try {
+                dir.listFiles { file -> file.extension == "exe" }?.forEach { exeFile ->
+                    PEResourceExtractor.create(exeFile)?.extractIcon()?.let { bytes ->
+                        val f = File(dir, ".xsystem4.ico")
+                        f.writeBytes(bytes)
+                        return f
+                    }
                 }
+            } catch (e: Exception) {
+                Log.e("GameList", "Failed to extract or write icon", e)
             }
             return null
         }
@@ -162,7 +166,7 @@ class GameList(activity: Activity) {
             } catch (e: InstallFailureException) {
                 observer?.onInstallFailure(e.msgId)
             } catch (e: Exception) {
-                Log.e("launcher", "Failed to extract ZIP", e)
+                Log.e("GameList", "Failed to extract ZIP", e)
                 observer?.onInstallFailure(R.string.zip_extraction_error)
             }
             isInstalling = false
@@ -213,7 +217,7 @@ private fun makeGroupReadable(dir: File) {
     if (Os.stat(dir.path).st_mode shr 3 and 4 != 0) {
         return  // Already group-readable.
     }
-    Log.i("Launcher", "Copying ${dir.path} to make it group-readable")
+    Log.i("GameList", "Copying ${dir.path} to make it group-readable")
     val tmpDir = File(dir.parent, ".xsystem4_temp")
     dir.copyRecursively(tmpDir, true)
     dir.deleteRecursively()
