@@ -24,6 +24,6 @@ class XSystem4Activity : SDLActivity() {
 
     override fun getArguments(): Array<String> {
         val gameRoot = intent.getStringExtra(EXTRA_GAME_ROOT)!!
-        return arrayOf(gameRoot)
+        return arrayOf("--save-format=rsm", gameRoot)
     }
 }
