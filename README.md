@@ -1,7 +1,6 @@
 # xsystem4-android
 This is a work-in-progress Android port of
-[xsystem4](https://github.com/nunuhara/xsystem4). It is in the very early
-stages of development and has many limitations and bugs.
+[xsystem4](https://github.com/nunuhara/xsystem4).
 
 Android 5.0 or higher is required.
 
