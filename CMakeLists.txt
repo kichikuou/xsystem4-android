@@ -13,6 +13,7 @@ set(stagingDir ${CMAKE_CURRENT_BINARY_DIR}/stage)
 set(androidProjectDir ${CMAKE_CURRENT_LIST_DIR}/project)
 
 set(COMMON_CMAKE_ARGS
+  -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
   -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
   -DCMAKE_ANDROID_ARCH_ABI=${CMAKE_ANDROID_ARCH_ABI}
   -DANDROID_PLATFORM=${ANDROID_PLATFORM}
@@ -47,6 +48,10 @@ ExternalProject_Add(
              -DBUILD_EXAMPLES=OFF
              -DBUILD_TESTING=OFF
              -DBUILD_DOCS=OFF
+             -DWITH_FORTIFY_SOURCE=OFF
+             -DWITH_STACK_PROTECTOR=OFF
+             -DINSTALL_MANPAGES=OFF
+             -DENABLE_MULTITHREADING=OFF
              # TODO: Remove this when setting ANDROID_PLATFORM to >=24
              -DCMAKE_C_FLAGS="-Wno-error=implicit-function-declaration"
   BUILD_COMMAND cmake --build <BINARY_DIR> --target FLAC
@@ -60,6 +65,9 @@ ExternalProject_Add(
   URL https://github.com/xiph/opus/releases/download/v1.4/opus-1.4.tar.gz
   URL_HASH SHA1=c53b3a74fc26fb2c2314afe958be30d169bd029a
   CMAKE_ARGS ${COMMON_CMAKE_ARGS}
+             -DOPUS_HARDENING=OFF
+             -DOPUS_STACK_PROTECTOR=OFF
+             -DOPUS_FORTIFY_SOURCE=OFF
 )
 
 ExternalProject_Add(
@@ -71,9 +79,19 @@ ExternalProject_Add(
 
 ExternalProject_Add(
   libwebp
-  URL https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.2.1.tar.gz
-  URL_HASH SHA1=9bbc3cb6f90dccafbd3e39325c28f24ac3f6e041
+  URL https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.3.2.tar.gz
+  URL_HASH SHA1=f941661a869df7347d7ca9208acb4e6d41f614de
   CMAKE_ARGS ${COMMON_CMAKE_ARGS}
+             -DWEBP_BUILD_ANIM_UTILS=OFF
+             -DWEBP_BUILD_CWEBP=OFF
+             -DWEBP_BUILD_DWEBP=OFF
+             -DWEBP_BUILD_GIF2WEBP=OFF
+             -DWEBP_BUILD_IMG2WEBP=OFF
+             -DWEBP_BUILD_VWEBP=OFF
+             -DWEBP_BUILD_WEBPINFO=OFF
+             -DWEBP_BUILD_WEBPMUX=OFF
+             -DWEBP_BUILD_EXTRAS=OFF
+             -DWEBP_BUILD_WEBP_JS=OFF
 )
 
 ExternalProject_Add(
@@ -88,26 +106,37 @@ set(TARGET_CC "${CMAKE_ANDROID_NDK_TOOLCHAIN_UNIFIED}/bin/clang -target ${CMAKE_
 
 ExternalProject_Add(
   libffi
-  URL https://github.com/libffi/libffi/releases/download/v3.4.2/libffi-3.4.2.tar.gz
-  URL_HASH SHA1=460882cfdb52a2bd13fc08edc540b242ae421033
+  URL https://github.com/libffi/libffi/releases/download/v3.4.6/libffi-3.4.6.tar.gz
+  URL_HASH SHA1=19251dfee520dff42acefe36bfe76d7168071e01
   CONFIGURE_COMMAND <SOURCE_DIR>/configure
-    --prefix=${stagingDir}
-    --disable-shared --disable-multi-os-directory
     --host ${CMAKE_C_COMPILER_TARGET}
+    --prefix=${stagingDir}
+    --disable-shared
+    --disable-dependency-tracking
+    --disable-builddir
+    --disable-multi-os-directory
+    --disable-structs
+    --disable-raw-api
+    --disable-docs
     AR=${CMAKE_AR}
     CC=${TARGET_CC}
     AS=${TARGET_CC}
     LD=${CMAKE_ANDROID_NDK_TOOLCHAIN_UNIFIED}/bin/ld
     RANLIB=${CMAKE_RANLIB}
     STRIP=${CMAKE_STRIP}
-  )
+)
 
 ExternalProject_Add(
   libsndfile
-  URL https://github.com/libsndfile/libsndfile/releases/download/1.0.31/libsndfile-1.0.31.tar.bz2
-  URL_HASH SHA1=f16a88e7223baef7c4497536dc1b55b56811debc
+  URL https://github.com/libsndfile/libsndfile/releases/download/1.2.2/libsndfile-1.2.2.tar.xz
+  URL_HASH SHA1=8d9031e13f56abb79e89a122333ad11fa0512799
   CMAKE_ARGS ${COMMON_CMAKE_ARGS}
-  )
+             -DBUILD_SHARED_LIBS=OFF
+             -DBUILD_PROGRAMS=OFF
+             -DBUILD_EXAMPLES=OFF
+             -DBUILD_TESTING=OFF
+             -DENABLE_CPACK=OFF
+)
 
 ExternalProject_Add_StepDependencies(libsndfile configure libvorbis flac opus)
 
@@ -116,7 +145,7 @@ ExternalProject_Add(
   SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/xsystem4
   CMAKE_ARGS ${COMMON_CMAKE_ARGS}
   BUILD_ALWAYS YES
-  )
+)
 
 ExternalProject_Add_StepDependencies(xsystem4 configure
   libjpeg-turbo libwebp libpng libffi libsndfile)
