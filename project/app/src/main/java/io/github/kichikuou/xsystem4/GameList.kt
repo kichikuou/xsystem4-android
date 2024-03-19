@@ -8,7 +8,6 @@ import android.graphics.BitmapFactory
 import android.media.MediaScannerConnection
 import android.os.Build
 import android.os.Environment
-import android.system.Os
 import android.util.Log
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -138,11 +137,9 @@ class GameList(activity: Activity) {
                     null
                 )
             }
-            // Make sure that save directories are group-readable (so that they can be transferred
-            // via MTP), while old xsystem4 created them with permission 0700.
-            // TODO: Remove this after some transition period.
+            // XXX: Fix owner and permissions of files in the directory created by ChromeOS files app.
             if (homedir.exists()) {
-                makeGroupReadable(homedir)
+                ensureWritable(homedir)
             }
         }
     }
@@ -213,13 +210,22 @@ class GameList(activity: Activity) {
     }
 }
 
-private fun makeGroupReadable(dir: File) {
-    if (Os.stat(dir.path).st_mode shr 3 and 4 != 0) {
-        return  // Already group-readable.
+private fun ensureWritable(dir: File) {
+    val unwritableFiles = dir.walkTopDown().filter { file ->
+        file.isFile && file.canRead() && !file.canWrite()
     }
-    Log.i("GameList", "Copying ${dir.path} to make it group-readable")
+    if (!unwritableFiles.any()) {
+        return
+    }
+    Log.i("GameList", "Copying ${dir.path} to make it writable")
     val tmpDir = File(dir.parent, ".xsystem4_temp")
-    dir.copyRecursively(tmpDir, true)
-    dir.deleteRecursively()
+    dir.copyRecursively(tmpDir, true) { file, exception ->
+        Log.e("GameList", "Failed to copy ${file}", exception)
+        OnErrorAction.SKIP
+    }
+    if (!dir.deleteRecursively()) {
+        val path = File(dir.parent, "please_delete_me_manually")
+        dir.renameTo(path)
+    }
     tmpDir.renameTo(dir)
 }
