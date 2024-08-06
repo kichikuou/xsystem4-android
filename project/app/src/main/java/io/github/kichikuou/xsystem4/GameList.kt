@@ -56,7 +56,12 @@ data class Item(val name: String, val path: File, val homedir: File, val icon: F
                 if (it.extension == "ico") { return it }
             }
             try {
-                dir.listFiles { file -> file.extension == "exe" }?.forEach { exeFile ->
+                dir.listFiles { file ->
+                    file.extension == "exe" &&
+                            file.name != "OpenSaveFolder.exe" &&
+                            file.name != "ResetConfig.exe" &&
+                            file.name != "Uninstaller.exe"
+                }?.forEach { exeFile ->
                     PEResourceExtractor.create(exeFile)?.extractIcon()?.let { bytes ->
                         val f = File(dir, ".xsystem4.ico")
                         f.writeBytes(bytes)
