@@ -21,6 +21,8 @@ set(COMMON_CMAKE_ARGS
   -DCMAKE_STAGING_PREFIX:PATH=${stagingDir}
   -DCMAKE_INSTALL_PREFIX:PATH=${stagingDir}
   -DANDROID_USE_LEGACY_TOOLCHAIN_FILE=OFF
+  # https://github.com/android/ndk/issues/2032
+  -DCMAKE_POLICY_DEFAULT_CMP0057=NEW
 )
 
 ExternalProject_Add(
@@ -63,8 +65,8 @@ ExternalProject_Add_StepDependencies(flac configure libogg)
 
 ExternalProject_Add(
   opus
-  URL https://github.com/xiph/opus/releases/download/v1.4/opus-1.4.tar.gz
-  URL_HASH SHA1=c53b3a74fc26fb2c2314afe958be30d169bd029a
+  URL https://downloads.xiph.org/releases/opus/opus-1.5.2.tar.gz
+  URL_HASH SHA256=65c1d2f78b9f2fb20082c38cbe47c951ad5839345876e46941612ee87f9a7ce1
   CMAKE_ARGS ${COMMON_CMAKE_ARGS}
              -DOPUS_HARDENING=OFF
              -DOPUS_STACK_PROTECTOR=OFF

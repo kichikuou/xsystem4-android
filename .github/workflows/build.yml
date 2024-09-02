@@ -17,7 +17,7 @@ jobs:
       run: sudo apt install ninja-build
 
     - name: Native Build
-      run: ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/26.3.11579264 ./build-shared-libs.sh
+      run: ANDROID_NDK_HOME=$ANDROID_NDK_LATEST_HOME ./build-shared-libs.sh
 
     - name: App Build
       run: |
