@@ -9,6 +9,7 @@ APKs are available
 [here](https://github.com/kichikuou/xsystem4-android/releases).
 
 ## Building
+You can skip this section if you just want to run the app.
 
 ### Prerequisites
 - Linux or Mac
@@ -38,11 +39,10 @@ APKs are available
    `project/app/src/main/jniLibs/`.
 4. Run `./gradlew build` in the `project` directory. This will generate APK
    files under `project/app/build/outputs/apk/`.
+5. To install the APK on your device, run `./gradlew installDebug` in the
+   `project` directory.
 
-## Running
-Connect your device via USB and run `./gradlew installDebug` in the `project`
-directory.
-
+## Installing Games
 Follow the on-screen instructions to install a System4 game. You will need to
 transfer the game files to your device using MTP. For example, the directory
 structure for Rance VI should look like this:
@@ -62,8 +62,17 @@ Android
             ...
 ```
 
+If your device supports SD cards, you can place the game files under the
+`Android/data/io.github.kichikuou.xsystem4/files/game_name` directory on the SD
+card.
+
 Alternatively, you can install a game from a ZIP archive on your device. Select
 "Install from ZIP" from the menu in the upper right corner.
+
+Note: On some devices or Android versions, you may not be able to access the
+`/Android/data` directory via MTP. In such cases, you have to either use the
+"Install from ZIP" method or write directly to the SD card using a card reader
+on your PC.
 
 ## Touch Gestures
 The following operations can be simulated using touch gestures:
