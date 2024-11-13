@@ -8,7 +8,6 @@ import android.graphics.BitmapFactory
 import android.media.MediaScannerConnection
 import android.os.Build
 import android.os.Environment
-import android.system.Os
 import android.util.Log
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -143,12 +142,6 @@ class GameList(activity: Activity) {
                     null
                 )
             }
-            // Make sure that save directories are group-readable (so that they can be transferred
-            // via MTP), while old xsystem4 created them with permission 0700.
-            // TODO: Remove this after some transition period.
-            if (homedir.exists()) {
-                makeGroupReadable(homedir)
-            }
         }
     }
 
@@ -216,15 +209,4 @@ class GameList(activity: Activity) {
         item.path.deleteRecursively()
         items.remove(item)
     }
-}
-
-private fun makeGroupReadable(dir: File) {
-    if (Os.stat(dir.path).st_mode shr 3 and 4 != 0) {
-        return  // Already group-readable.
-    }
-    Log.i("GameList", "Copying ${dir.path} to make it group-readable")
-    val tmpDir = File(dir.parent, ".xsystem4_temp")
-    dir.copyRecursively(tmpDir, true)
-    dir.deleteRecursively()
-    tmpDir.renameTo(dir)
 }
