@@ -27,27 +27,26 @@ interface GameListObserver {
     fun onInstallFailure(msgId: Int)
 }
 
-data class Item(val name: String, val path: File, val homedir: File, val icon: File?, val error: String?) {
+data class Item(val name: String, val path: File, val homedir: File, val savedir: File?, val icon: File?, val error: String?) {
     companion object {
         fun fromDirectory(dir: File, homedir: File, context: Context): Item {
-            var ini = File(dir, "System40.ini")
-            if (!ini.exists())
-                ini = File(dir, "AliceStart.ini")
-            if (!ini.exists()) {
+            var iniFile = File(dir, "System40.ini")
+            if (!iniFile.exists())
+                iniFile = File(dir, "AliceStart.ini")
+            if (!iniFile.exists()) {
                 val err = context.getString(R.string.toast_no_ini, dir.path)
                 Log.w("GameList", err)
-                return Item(dir.name, dir, homedir, null, err)
+                return Item(dir.name, dir, homedir, null, null, err)
             }
             val icon = findIcon(dir)
-            val regex = Regex("""GameName\s*=\s*"(.*)"""")
-            for (line in ini.readLines(Charset.forName("Shift_JIS"))) {
-                regex.matchEntire(line)?.let {
-                    return Item(it.groupValues[1], dir, homedir, icon, null)
-                }
+            val ini = System40Ini.parse(iniFile)
+            if (ini.gameName == null) {
+                val err = context.getString(R.string.toast_no_GameName, iniFile.path)
+                Log.w("GameList", err)
+                return Item(dir.name, dir, homedir, null, icon, err)
             }
-            val err = context.getString(R.string.toast_no_GameName, ini.path)
-            Log.w("GameList", err)
-            return Item(dir.name, dir, homedir, icon, err)
+            val savedir = File(dir, ini.SaveFolder ?: "SaveData")
+            return Item(ini.gameName, dir, homedir, savedir, icon, null)
         }
 
         private fun findIcon(dir: File): File? {
@@ -101,6 +100,25 @@ data class Item(val name: String, val path: File, val homedir: File, val icon: F
             buf.put(bestMatchEntry)
         }
         return BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+    }
+}
+
+data class System40Ini(val gameName: String?, val SaveFolder: String?) {
+    companion object {
+        fun parse(file: File): System40Ini {
+            val regex = Regex("""(\w+)\s*=\s*"(.*)"""")
+            var gameName: String? = null
+            var SaveFolder: String? = null
+            for (line in file.readLines(Charset.forName("Shift_JIS"))) {
+                regex.matchEntire(line)?.let {
+                    when (it.groupValues[1]) {
+                        "GameName" -> gameName = it.groupValues[2]
+                        "SaveFolder" -> SaveFolder = it.groupValues[2]
+                    }
+                }
+            }
+            return System40Ini(gameName, SaveFolder)
+        }
     }
 }
 
