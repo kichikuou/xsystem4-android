@@ -161,6 +161,7 @@ class GameList(activity: Activity) {
                 )
             }
         }
+        moveSaveDirectories()
     }
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -226,5 +227,25 @@ class GameList(activity: Activity) {
     fun uninstall(item: Item) {
         item.path.deleteRecursively()
         items.remove(item)
+    }
+
+    // Move save directories to the new location.
+    // TODO: Remove this after some transition period.
+    private fun moveSaveDirectories() {
+        for (item in items) {
+            if (item.error != null) continue
+            val oldPath = File(item.homedir, item.name)
+            val files = oldPath.listFiles() ?: continue
+            for (file in files) {
+                val newPath = File(item.path, file.name)
+                Log.i("GameList", "Moving save directory: ${file} -> ${newPath}")
+                if (newPath.exists()) {
+                    Log.w("GameList", "Removing existing save directory: ${newPath}")
+                    newPath.deleteRecursively()
+                }
+                file.renameTo(newPath)
+            }
+            oldPath.deleteRecursively()
+        }
     }
 }
