@@ -23,7 +23,6 @@ set(COMMON_CMAKE_ARGS
   -DANDROID_USE_LEGACY_TOOLCHAIN_FILE=OFF
   # https://github.com/android/ndk/issues/2032
   -DCMAKE_POLICY_DEFAULT_CMP0057=NEW
-  -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 )
 
 ExternalProject_Add(
@@ -31,6 +30,7 @@ ExternalProject_Add(
   URL https://github.com/xiph/ogg/releases/download/v1.3.5/libogg-1.3.5.tar.xz
   URL_HASH SHA1=5a368421a636f7faa4c2f662857cb507dffd7c99
   CMAKE_ARGS ${COMMON_CMAKE_ARGS}
+             -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 )
 
 ExternalProject_Add(
@@ -38,7 +38,8 @@ ExternalProject_Add(
   URL https://github.com/xiph/vorbis/releases/download/v1.3.7/libvorbis-1.3.7.tar.xz
   URL_HASH SHA1=0a2dd71a999656b8091506839e8007a61a8fda1f
   CMAKE_ARGS ${COMMON_CMAKE_ARGS}
-)
+             -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+  )
 
 ExternalProject_Add_StepDependencies(libvorbis configure libogg)
 
@@ -76,8 +77,8 @@ ExternalProject_Add(
 
 ExternalProject_Add(
   libjpeg-turbo
-  URL https://sourceforge.net/projects/libjpeg-turbo/files/2.1.2/libjpeg-turbo-2.1.2.tar.gz/download
-  URL_HASH SHA1=65c51c543b1fbba6db9ff5bee474ccb0b52a929f
+  URL https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.1.0/libjpeg-turbo-3.1.0.tar.gz
+  URL_HASH SHA1=ba3c0152f14a504018de19c9f62250d8f3351525
   CMAKE_ARGS ${COMMON_CMAKE_ARGS}
 )
 
@@ -100,10 +101,11 @@ ExternalProject_Add(
 
 ExternalProject_Add(
   libpng
-  URL https://download.sourceforge.net/libpng/libpng-1.6.37.tar.xz
-  URL_HASH SHA1=3ab93fabbf4c27e1c4724371df408d9a1bd3f656
+  URL https://download.sourceforge.net/libpng/libpng-1.6.47.tar.xz
+  URL_HASH SHA256=b213cb381fbb1175327bd708a77aab708a05adde7b471bc267bd15ac99893631
   CMAKE_ARGS ${COMMON_CMAKE_ARGS}
              -DPNG_SHARED=OFF
+             -DPNG_ARM_NEON=on
 )
 
 set(TARGET_CC "${CMAKE_ANDROID_NDK_TOOLCHAIN_UNIFIED}/bin/clang -target ${CMAKE_C_COMPILER_TARGET}")
@@ -135,6 +137,7 @@ ExternalProject_Add(
   URL https://github.com/libsndfile/libsndfile/releases/download/1.2.2/libsndfile-1.2.2.tar.xz
   URL_HASH SHA1=8d9031e13f56abb79e89a122333ad11fa0512799
   CMAKE_ARGS ${COMMON_CMAKE_ARGS}
+             -DCMAKE_POLICY_VERSION_MINIMUM=3.5
              -DBUILD_SHARED_LIBS=OFF
              -DBUILD_PROGRAMS=OFF
              -DBUILD_EXAMPLES=OFF
@@ -148,6 +151,7 @@ ExternalProject_Add(
   xsystem4
   SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/xsystem4
   CMAKE_ARGS ${COMMON_CMAKE_ARGS}
+             -DCMAKE_MODULE_PATH=${CMAKE_CURRENT_LIST_DIR}/cmake
   BUILD_ALWAYS YES
 )
 
