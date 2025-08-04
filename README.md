@@ -35,7 +35,7 @@ You can skip this section if you just want to run the app.
 3. Run `./build-shared-libs.sh` in the repository's root directory. This will
    build the native libraries and place them in
    `project/app/src/main/jniLibs/`.
-4. Run `./gradlew wrapper` and `./gradlew build` in the `project` directory. This will generate APK
+4. Run `./gradlew build` in the `project` directory. This will generate APK
    files under `project/app/build/outputs/apk/`.
 5. To install the APK on your device, run `./gradlew installDebug` in the
    `project` directory.
