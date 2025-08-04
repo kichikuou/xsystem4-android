@@ -28,11 +28,9 @@ You can skip this section if you just want to run the app.
    export ANDROID_SDK_ROOT=~/Library/Android/sdk
    export ANDROID_NDK_HOME=~/Library/Android/sdk/ndk/26.1.10909125
    ```
-2. Clone this repository:
+2. Clone this repository recursively:
    ```sh
-   git clone https://github.com/kichikuou/xsystem4-android.git
-   cd xsystem4-android
-   git submodule update --init --recursive
+   git clone --recursive https://github.com/kichikuou/xsystem4-android.git
    ```
 3. Run `./build-shared-libs.sh` in the repository's root directory. This will
    build the native libraries and place them in
