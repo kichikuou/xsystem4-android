@@ -5,8 +5,19 @@ This is a work-in-progress Android port of
 Android 5.0 or higher is required.
 
 ## Downloading
+You can get the app in one of two ways:
+
+### Direct Download
 APKs are available
 [here](https://github.com/kichikuou/xsystem4-android/releases).
+
+### Obtainium
+You can use [Obtainium](https://github.com/ImranR98/Obtainium) to get notified
+of new releases and install them easily.
+
+Click the badge below to add the app to Obtainium:
+
+[<img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" height="60">](https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22io.github.kichikuou.xsystem4%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2Fkichikuou%2Fxsystem4-android%22%2C%22author%22%3A%22kichikuou%22%2C%22name%22%3A%22xsystem4%22%2C%22categories%22%3A%5B%22games%22%5D%7D)
 
 ## Building
 You can skip this section if you just want to run the app.
