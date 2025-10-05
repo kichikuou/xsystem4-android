@@ -19,7 +19,7 @@ android {
         // So that stripReleaseDebugSymbols task works
         ndkPath System.getenv("ANDROID_NDK_HOME")
         versionCode 2
-        versionName calcVersionName()
+        versionName "1.0.0" + gitRevision()
     }
     signingConfigs {
         release {
@@ -61,6 +61,6 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
 }
 
-static String calcVersionName() {
-    "git rev-parse --short HEAD".execute().text.trim() + '-git'
+static String gitRevision() {
+    ' (git ' + "git rev-parse --short HEAD".execute().text.trim() + ')'
 }
