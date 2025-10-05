@@ -13,6 +13,12 @@ class XSystem4Activity : SDLActivity() {
         const val EXTRA_SAVE_DIR = "SAVE_DIR"
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        // Workaround for https://github.com/libsdl-org/SDL/issues/8995
+        SDLActivity.setWindowStyle(true)
+    }
+
     override fun getLibraries(): Array<String> {
         return arrayOf("SDL2", "xsystem4")
     }
