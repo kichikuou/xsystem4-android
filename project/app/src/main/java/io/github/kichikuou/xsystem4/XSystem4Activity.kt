@@ -11,6 +11,7 @@ class XSystem4Activity : SDLActivity() {
     companion object {
         const val EXTRA_GAME_ROOT = "GAME_ROOT"
         const val EXTRA_SAVE_DIR = "SAVE_DIR"
+        const val COMMAND_OPEN_PLAYING_MANUAL = 0x8000  // xsystem4/src/hll/SystemService.c
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,5 +28,23 @@ class XSystem4Activity : SDLActivity() {
         val saveFolder = intent.getStringExtra(EXTRA_SAVE_DIR)!!
         val gameRoot = intent.getStringExtra(EXTRA_GAME_ROOT)!!
         return arrayOf("--save-folder", saveFolder, "--save-format=rsm", gameRoot)
+    }
+
+    override fun onUnhandledMessage(command: Int, param: Any): Boolean {
+        when (command) {
+            COMMAND_OPEN_PLAYING_MANUAL -> {
+                val gameRoot = intent.getStringExtra(EXTRA_GAME_ROOT)!!
+                val manualDir = java.io.File(gameRoot, "Manual")
+                if (manualDir.isDirectory) {
+                    val intent = android.content.Intent(this, ManualActivity::class.java).apply {
+                        val url = "file://${manualDir.absolutePath}/index.html"
+                        putExtra(ManualActivity.EXTRA_URL, url)
+                    }
+                    startActivity(intent)
+                }
+                return true
+            }
+        }
+        return super.onUnhandledMessage(command, param)
     }
 }

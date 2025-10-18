@@ -110,6 +110,11 @@
             android:parentActivityName=".LicensesMenuActivity"
             android:exported="false">
         </activity>
+
+        <activity
+            android:name=".ManualActivity"
+            android:exported="false">
+        </activity>
     </application>
 
 </manifest>
