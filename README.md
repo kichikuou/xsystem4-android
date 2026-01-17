@@ -4,6 +4,9 @@ This is a work-in-progress Android port of
 
 Android 5.0 or higher is required.
 
+See the [game compatibility table](https://github.com/nunuhara/xsystem4/blob/master/game_compatibility.md)
+for a list of games that can be played on xsystem4-android.
+
 ## Downloading
 You can get the app in one of two ways:
 
