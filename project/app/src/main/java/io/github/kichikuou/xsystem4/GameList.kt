@@ -243,6 +243,7 @@ class GameList(activity: Activity) {
     ): File {
         val tempDir = File(storagePath, ".install_temp")
         tempDir.deleteRecursively()
+        val tempDirCanonical = tempDir.canonicalFile
         val zip = ZipInputStream(input.buffered(), Charset.forName("Shift_JIS"))
         var gameRoot: File? = null
         try {
@@ -252,7 +253,7 @@ class GameList(activity: Activity) {
                     if (entry.isDirectory) {
                         continue
                     }
-                    val path = File(tempDir, entry.name)
+                    val path = resolveZipEntryPath(tempDir, tempDirCanonical, entry.name)
                     Log.i("GameList", "Extracting ${entry.name}")
                     progressCallback(entry.name)
                     path.parentFile?.mkdirs()
@@ -276,6 +277,14 @@ class GameList(activity: Activity) {
         } finally {
             tempDir.deleteRecursively()
         }
+    }
+
+    private fun resolveZipEntryPath(tempDir: File, tempDirCanonical: File, entryName: String): File {
+        val path = File(tempDir, entryName.replace('\\', File.separatorChar)).canonicalFile
+        if (path == tempDirCanonical || !path.path.startsWith(tempDirCanonical.path + File.separator)) {
+            throw IOException("ZIP entry escapes install directory: ${entryName}")
+        }
+        return path
     }
 
     fun uninstall(item: Item) {
