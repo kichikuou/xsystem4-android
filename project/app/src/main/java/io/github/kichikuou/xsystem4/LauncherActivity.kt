@@ -23,20 +23,11 @@ import android.widget.TextView
 private const val ICON_SIZE_DP = 40
 private const val INSTALL_REQUEST = 1
 
-private class GameListAdapter(activity: Activity, refresh: Boolean) : BaseAdapter() {
+private class GameListAdapter(activity: Activity, private val gameList: GameList) : BaseAdapter() {
     companion object {
-        private var savedGameList: GameList? = null
         private var defaultTextColor: ColorStateList? = null
     }
     private val context: Context = activity
-    val gameList: GameList
-
-    init {
-        if (savedGameList == null || refresh && savedGameList?.installState is InstallState.Idle) {
-            savedGameList = GameList(activity)
-        }
-        gameList = savedGameList!!
-    }
 
     override fun getCount(): Int = gameList.size
     override fun getItem(position: Int): Any = gameList[position]
@@ -61,6 +52,11 @@ private class GameListAdapter(activity: Activity, refresh: Boolean) : BaseAdapte
 }
 
 class LauncherActivity : Activity(), GameListObserver {
+    companion object {
+        private var savedGameList: GameList? = null
+    }
+
+    private lateinit var gameList: GameList
     private lateinit var adapter: GameListAdapter
     private var progressDialog: Dialog? = null
 
@@ -68,8 +64,9 @@ class LauncherActivity : Activity(), GameListObserver {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.launcher)
 
-        adapter = GameListAdapter(this, false)
-        adapter.gameList.observer = this
+        gameList = getGameList(refresh = false)
+        gameList.observer = this
+        adapter = GameListAdapter(this, gameList)
 
         val listView = findViewById<ListView>(R.id.list)
         listView.adapter = adapter
@@ -81,12 +78,12 @@ class LauncherActivity : Activity(), GameListObserver {
         listView.setOnItemLongClickListener { _, _, pos, _ ->
             onItemLongClick(listView.adapter.getItem(pos) as Item)
         }
-        renderInstallState(adapter.gameList.installState)
+        renderInstallState(gameList.installState)
     }
 
     override fun onDestroy() {
-        if (adapter.gameList.observer === this) {
-            adapter.gameList.observer = null
+        if (gameList.observer === this) {
+            gameList.observer = null
         }
         dismissProgressDialog()
         super.onDestroy()
@@ -104,11 +101,7 @@ class LauncherActivity : Activity(), GameListObserver {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.refresh -> {
-                adapter.gameList.observer = null
-                adapter = GameListAdapter(this, true)
-                adapter.gameList.observer = this
-                findViewById<ListView>(R.id.list).adapter = adapter
-                renderInstallState(adapter.gameList.installState)
+                setGameList(getGameList(refresh = true))
                 true
             }
             R.id.install_from_zip -> {
@@ -139,22 +132,40 @@ class LauncherActivity : Activity(), GameListObserver {
         when (requestCode) {
             INSTALL_REQUEST -> {
                 val input = contentResolver.openInputStream(uri) ?: return
-                adapter.gameList.install(input)
-                renderInstallState(adapter.gameList.installState)
+                gameList.install(input)
+                renderInstallState(gameList.installState)
             }
         }
     }
 
     override fun onInstallProgress(path: String) {
-        renderInstallState(adapter.gameList.installState)
+        renderInstallState(gameList.installState)
     }
 
     override fun onInstallSuccess() {
-        renderInstallState(adapter.gameList.installState)
+        renderInstallState(gameList.installState)
     }
 
     override fun onInstallFailure(msgId: Int) {
-        renderInstallState(adapter.gameList.installState)
+        renderInstallState(gameList.installState)
+    }
+
+    private fun getGameList(refresh: Boolean): GameList {
+        if (savedGameList == null || refresh && savedGameList?.installState is InstallState.Idle) {
+            savedGameList = GameList(this)
+        }
+        return savedGameList!!
+    }
+
+    private fun setGameList(newGameList: GameList) {
+        if (gameList.observer === this) {
+            gameList.observer = null
+        }
+        gameList = newGameList
+        gameList.observer = this
+        adapter = GameListAdapter(this, gameList)
+        findViewById<ListView>(R.id.list).adapter = adapter
+        renderInstallState(gameList.installState)
     }
 
     private fun onListItemClick(item: Item) {
@@ -177,7 +188,7 @@ class LauncherActivity : Activity(), GameListObserver {
         AlertDialog.Builder(this).setTitle(R.string.uninstall_dialog_title)
             .setMessage(getString(R.string.uninstall_dialog_message, item.name))
             .setPositiveButton(R.string.ok) {_, _ ->
-                adapter.gameList.uninstall(item)
+                gameList.uninstall(item)
                 adapter.notifyDataSetChanged()
             }
             .setNegativeButton(R.string.cancel) {_, _ -> }
@@ -192,7 +203,7 @@ class LauncherActivity : Activity(), GameListObserver {
             InstallState.Succeeded -> {
                 dismissProgressDialog()
                 adapter.notifyDataSetChanged()
-                adapter.gameList.consumeInstallResult()
+                gameList.consumeInstallResult()
             }
             is InstallState.Failed -> {
                 dismissProgressDialog()
@@ -200,7 +211,7 @@ class LauncherActivity : Activity(), GameListObserver {
                     .setMessage(state.msgId)
                     .setPositiveButton(R.string.ok) {_, _ -> }
                     .show()
-                adapter.gameList.consumeInstallResult()
+                gameList.consumeInstallResult()
             }
         }
     }
