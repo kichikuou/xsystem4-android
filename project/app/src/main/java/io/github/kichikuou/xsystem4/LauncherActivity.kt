@@ -22,7 +22,6 @@ import android.widget.TextView
 
 private const val ICON_SIZE_DP = 40
 private const val INSTALL_REQUEST = 1
-private const val STATE_PROGRESS_TEXT = "progressText"
 
 private class GameListAdapter(activity: Activity, refresh: Boolean) : BaseAdapter() {
     companion object {
@@ -33,7 +32,7 @@ private class GameListAdapter(activity: Activity, refresh: Boolean) : BaseAdapte
     val gameList: GameList
 
     init {
-        if (savedGameList == null || refresh) {
+        if (savedGameList == null || refresh && savedGameList?.installState is InstallState.Idle) {
             savedGameList = GameList(activity)
         }
         gameList = savedGameList!!
@@ -71,9 +70,6 @@ class LauncherActivity : Activity(), GameListObserver {
 
         adapter = GameListAdapter(this, false)
         adapter.gameList.observer = this
-        if (adapter.gameList.isInstalling) {
-            showProgressDialog(savedInstanceState)
-        }
 
         val listView = findViewById<ListView>(R.id.list)
         listView.adapter = adapter
@@ -85,19 +81,15 @@ class LauncherActivity : Activity(), GameListObserver {
         listView.setOnItemLongClickListener { _, _, pos, _ ->
             onItemLongClick(listView.adapter.getItem(pos) as Item)
         }
+        renderInstallState(adapter.gameList.installState)
     }
 
     override fun onDestroy() {
-        adapter.gameList.observer = null
+        if (adapter.gameList.observer === this) {
+            adapter.gameList.observer = null
+        }
         dismissProgressDialog()
         super.onDestroy()
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        progressDialog?.let {
-            outState.putCharSequence(STATE_PROGRESS_TEXT, it.findViewById<TextView>(R.id.text).text)
-        }
-        super.onSaveInstanceState(outState)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -112,8 +104,11 @@ class LauncherActivity : Activity(), GameListObserver {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.refresh -> {
+                adapter.gameList.observer = null
                 adapter = GameListAdapter(this, true)
+                adapter.gameList.observer = this
                 findViewById<ListView>(R.id.list).adapter = adapter
+                renderInstallState(adapter.gameList.installState)
                 true
             }
             R.id.install_from_zip -> {
@@ -144,27 +139,22 @@ class LauncherActivity : Activity(), GameListObserver {
         when (requestCode) {
             INSTALL_REQUEST -> {
                 val input = contentResolver.openInputStream(uri) ?: return
-                showProgressDialog()
-                adapter.gameList.install(input, this)
+                adapter.gameList.install(input)
+                renderInstallState(adapter.gameList.installState)
             }
         }
     }
 
     override fun onInstallProgress(path: String) {
-        progressDialog?.findViewById<TextView>(R.id.text)?.text = getString(R.string.install_progress, path)
+        renderInstallState(adapter.gameList.installState)
     }
 
     override fun onInstallSuccess() {
-        dismissProgressDialog()
-        adapter.notifyDataSetChanged()
+        renderInstallState(adapter.gameList.installState)
     }
 
     override fun onInstallFailure(msgId: Int) {
-        dismissProgressDialog()
-        AlertDialog.Builder(this).setTitle(R.string.error)
-            .setMessage(msgId)
-            .setPositiveButton(R.string.ok) {_, _ -> }
-            .show()
+        renderInstallState(adapter.gameList.installState)
     }
 
     private fun onListItemClick(item: Item) {
@@ -195,16 +185,38 @@ class LauncherActivity : Activity(), GameListObserver {
         return true
     }
 
-    private fun showProgressDialog(savedInstanceState: Bundle? = null) {
-        progressDialog = Dialog(this)
-        progressDialog!!.apply {
-            setTitle(R.string.install_dialog_title)
-            setCancelable(false)
-            setContentView(R.layout.progress_dialog)
-            savedInstanceState?.let {
-                findViewById<TextView>(R.id.text)?.text = it.getCharSequence(STATE_PROGRESS_TEXT)
+    private fun renderInstallState(state: InstallState) {
+        when (state) {
+            InstallState.Idle -> dismissProgressDialog()
+            is InstallState.Installing -> showProgressDialog(state.progress)
+            InstallState.Succeeded -> {
+                dismissProgressDialog()
+                adapter.notifyDataSetChanged()
+                adapter.gameList.consumeInstallResult()
             }
-            show()
+            is InstallState.Failed -> {
+                dismissProgressDialog()
+                AlertDialog.Builder(this).setTitle(R.string.error)
+                    .setMessage(state.msgId)
+                    .setPositiveButton(R.string.ok) {_, _ -> }
+                    .show()
+                adapter.gameList.consumeInstallResult()
+            }
+        }
+    }
+
+    private fun showProgressDialog(progress: String? = null) {
+        if (progressDialog == null) {
+            progressDialog = Dialog(this)
+            progressDialog!!.apply {
+                setTitle(R.string.install_dialog_title)
+                setCancelable(false)
+                setContentView(R.layout.progress_dialog)
+                show()
+            }
+        }
+        progress?.let {
+            progressDialog?.findViewById<TextView>(R.id.text)?.text = getString(R.string.install_progress, it)
         }
     }
 

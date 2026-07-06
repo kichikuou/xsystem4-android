@@ -9,13 +9,15 @@ import android.media.MediaScannerConnection
 import android.os.Build
 import android.os.Environment
 import android.util.Log
-import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.InputStream
+import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.charset.Charset
@@ -25,6 +27,13 @@ interface GameListObserver {
     fun onInstallProgress(path: String)
     fun onInstallSuccess()
     fun onInstallFailure(msgId: Int)
+}
+
+sealed class InstallState {
+    object Idle : InstallState()
+    data class Installing(val progress: String?) : InstallState()
+    object Succeeded : InstallState()
+    data class Failed(val msgId: Int) : InstallState()
 }
 
 data class Item(val name: String, val path: File, val homedir: File, val savedir: File?, val icon: File?, val error: String?) {
@@ -123,12 +132,15 @@ data class System40Ini(val gameName: String?, val SaveFolder: String?) {
 }
 
 class GameList(activity: Activity) {
+    private val context: Context = activity.applicationContext
     private val items: ArrayList<Item> = arrayListOf()
     private val storageDirs: ArrayList<File> = arrayListOf()
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private var installJob: Job? = null
     operator fun get(index: Int): Item = items[index]
     val size: Int get() = items.size
     var observer: GameListObserver? = null
-    var isInstalling = false
+    var installState: InstallState = InstallState.Idle
         private set
 
     class InstallFailureException(val msgId: Int) : Exception()
@@ -145,7 +157,7 @@ class GameList(activity: Activity) {
             val files = storagePath.listFiles() ?: continue
             for (path in files) {
                 if (!path.name.startsWith(".") && path.isDirectory) {
-                    items.add(Item.fromDirectory(path, homedir, activity))
+                    items.add(Item.fromDirectory(path, homedir, context))
                 }
             }
             if (state == Environment.MEDIA_MOUNTED && files.isEmpty()) {
@@ -164,64 +176,106 @@ class GameList(activity: Activity) {
         moveSaveDirectories()
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun install(input: InputStream, activity: Activity) {
-        isInstalling = true
-        GlobalScope.launch(Dispatchers.Main) {
+    fun install(input: InputStream) {
+        if (installJob?.isActive == true) {
+            closeRejectedInput(input)
+            return
+        }
+        installState = InstallState.Installing(null)
+        installJob = scope.launch {
             try {
-                val storagePath = storageDirs[0]
-                val path = withContext(Dispatchers.IO) {
-                    doInstall(input, storagePath) { msg ->
-                        GlobalScope.launch(Dispatchers.Main) {
-                            observer?.onInstallProgress(msg)
+                input.use { installInput ->
+                    val storagePath = storageDirs[0]
+                    val path = withContext(Dispatchers.IO) {
+                        doInstall(installInput, storagePath) { msg ->
+                            withContext(Dispatchers.Main) {
+                                setInstallProgress(msg)
+                            }
                         }
                     }
+                    val homedir = File(storagePath, ".xsystem4")
+                    items.add(Item.fromDirectory(path, homedir, context))
                 }
-                val homedir = File(storagePath, ".xsystem4")
-                items.add(Item.fromDirectory(path, homedir, activity))
-                observer?.onInstallSuccess()
+                setInstallSucceeded()
             } catch (e: InstallFailureException) {
-                observer?.onInstallFailure(e.msgId)
+                setInstallFailed(e.msgId)
             } catch (e: Exception) {
                 Log.e("GameList", "Failed to extract ZIP", e)
-                observer?.onInstallFailure(R.string.zip_extraction_error)
+                setInstallFailed(R.string.zip_extraction_error)
             }
-            isInstalling = false
+        }
+    }
+
+    fun consumeInstallResult() {
+        if (installState is InstallState.Succeeded || installState is InstallState.Failed) {
+            installState = InstallState.Idle
+        }
+    }
+
+    private fun setInstallProgress(progress: String) {
+        installState = InstallState.Installing(progress)
+        observer?.onInstallProgress(progress)
+    }
+
+    private fun setInstallSucceeded() {
+        installState = InstallState.Succeeded
+        observer?.onInstallSuccess()
+    }
+
+    private fun setInstallFailed(msgId: Int) {
+        installState = InstallState.Failed(msgId)
+        observer?.onInstallFailure(msgId)
+    }
+
+    private fun closeRejectedInput(input: InputStream) {
+        try {
+            input.close()
+        } catch (e: IOException) {
+            Log.w("GameList", "Failed to close rejected install input", e)
         }
     }
 
     @TargetApi(Build.VERSION_CODES.N)
-    private fun doInstall(input: InputStream, storagePath: File, progressCallback: (String) -> Unit): File {
+    private suspend fun doInstall(
+        input: InputStream,
+        storagePath: File,
+        progressCallback: suspend (String) -> Unit
+    ): File {
         val tempDir = File(storagePath, ".install_temp")
         tempDir.deleteRecursively()
         val zip = ZipInputStream(input.buffered(), Charset.forName("Shift_JIS"))
         var gameRoot: File? = null
-        zip.use {
-            while (true) {
-                val entry = zip.nextEntry ?: break
-                if (entry.isDirectory) {
-                    continue
-                }
-                val path = File(tempDir, entry.name)
-                Log.i("GameList", "Extracting ${entry.name}")
-                progressCallback(entry.name)
-                path.parentFile?.mkdirs()
-                path.outputStream().buffered().use { zip.copyTo(it) }
+        try {
+            zip.use {
+                while (true) {
+                    val entry = zip.nextEntry ?: break
+                    if (entry.isDirectory) {
+                        continue
+                    }
+                    val path = File(tempDir, entry.name)
+                    Log.i("GameList", "Extracting ${entry.name}")
+                    progressCallback(entry.name)
+                    path.parentFile?.mkdirs()
+                    path.outputStream().buffered().use { zip.copyTo(it) }
 
-                if (path.name == "System40.ini" || path.name == "AliceStart.ini") {
-                    gameRoot = path.parentFile
+                    if (path.name == "System40.ini" || path.name == "AliceStart.ini") {
+                        gameRoot = path.parentFile
+                    }
                 }
             }
+            val srcDir = gameRoot ?: throw InstallFailureException(R.string.zip_no_ini)
+            var dstDir = File(storagePath, srcDir.name)
+            var i = 1
+            while (dstDir.exists()) {
+                dstDir = File(storagePath, "${srcDir.name} (${i++})")
+            }
+            if (!srcDir.renameTo(dstDir)) {
+                throw IOException("Failed to move installed game: ${srcDir} -> ${dstDir}")
+            }
+            return dstDir
+        } finally {
+            tempDir.deleteRecursively()
         }
-        val srcDir = gameRoot ?: throw InstallFailureException(R.string.zip_no_ini)
-        var dstDir = File(storagePath, srcDir.name)
-        var i = 1
-        while (dstDir.exists()) {
-            dstDir = File(storagePath, "${srcDir.name} (${i++})")
-        }
-        srcDir.renameTo(dstDir)
-        tempDir.deleteRecursively()
-        return dstDir
     }
 
     fun uninstall(item: Item) {
