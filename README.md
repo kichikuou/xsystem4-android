@@ -2,7 +2,10 @@
 This is a work-in-progress Android port of
 [xsystem4](https://github.com/nunuhara/xsystem4).
 
-Android 5.0 or higher is required.
+Supported environments:
+
+- OS: Android 5.0 or later
+- CPU: 32-bit ARM, 64-bit ARM, or 64-bit x86
 
 See the [game compatibility table](https://github.com/nunuhara/xsystem4/blob/master/game_compatibility.md)
 for a list of games that can be played on xsystem4-android.

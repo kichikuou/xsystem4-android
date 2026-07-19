@@ -7,7 +7,7 @@ if [ -z $ANDROID_NDK_HOME ]; then
     exit 1
 fi
 
-ABI_NAMES=${ABI_NAMES:-armeabi-v7a arm64-v8a x86 x86_64}
+ABI_NAMES=${ABI_NAMES:-armeabi-v7a arm64-v8a x86_64}
 ANDROID_API_LEVEL=${ANDROID_API_LEVEL:-21}
 
 for abi in ${ABI_NAMES}; do
