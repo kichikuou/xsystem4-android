@@ -1,7 +1,7 @@
 package io.github.kichikuou.xsystem4
 
 import android.os.Bundle
-import android.system.Os
+import android.os.Process
 import org.libsdl.app.SDLActivity
 
 // Intent for this activity must have the following extras:
@@ -28,6 +28,15 @@ class XSystem4Activity : SDLActivity() {
         val saveFolder = intent.getStringExtra(EXTRA_SAVE_DIR)!!
         val gameRoot = intent.getStringExtra(EXTRA_GAME_ROOT)!!
         return arrayOf("--save-folder", saveFolder, "--save-format=rsm", gameRoot)
+    }
+
+    override fun onDestroy() {
+        try {
+            // Let SDL stop and join its native thread before terminating the game process.
+            super.onDestroy()
+        } finally {
+            Process.killProcess(Process.myPid())
+        }
     }
 
     override fun onUnhandledMessage(command: Int, param: Any): Boolean {
