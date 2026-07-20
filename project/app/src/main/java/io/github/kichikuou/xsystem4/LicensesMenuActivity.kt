@@ -15,6 +15,7 @@ class LicensesMenuActivity : Activity() {
         Entry("cglm", "cglm", "https://github.com/recp/cglm"),
         Entry("libFLAC", "flac", "https://xiph.org/flac/"),
         Entry("FreeType", "freetype", "https://freetype.org/"),
+        Entry("libdeflate", "libdeflate", "https://github.com/ebiggers/libdeflate"),
         Entry("libffi", "libffi", "https://sourceware.org/libffi/"),
         Entry("libjpeg-turbo", "libjpeg-turbo", "https://libjpeg-turbo.org/"),
         Entry("libogg", "libogg", "https://xiph.org/ogg/"),

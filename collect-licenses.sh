@@ -13,6 +13,7 @@ cp ${build_dir}/libwebp-prefix/src/libwebp/COPYING ${dest_dir}/libwebp
 cp ${build_dir}/libpng-prefix/src/libpng/LICENSE ${dest_dir}/libpng
 cp ${build_dir}/libffi-prefix/src/libffi/LICENSE ${dest_dir}/libffi
 cp ${build_dir}/libsndfile-prefix/src/libsndfile/COPYING ${dest_dir}/libsndfile
+cp ${build_dir}/libdeflate-prefix/src/libdeflate/COPYING ${dest_dir}/libdeflate
 
 xsystem4_deps_dir=${build_dir}/xsystem4-prefix/src/xsystem4-build/_deps
 cp ${xsystem4_deps_dir}/cglm-src/LICENSE ${dest_dir}/cglm
