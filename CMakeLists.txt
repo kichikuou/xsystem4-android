@@ -44,38 +44,6 @@ ExternalProject_Add(
 ExternalProject_Add_StepDependencies(libvorbis configure libogg)
 
 ExternalProject_Add(
-  flac
-  URL https://github.com/xiph/flac/releases/download/1.4.3/flac-1.4.3.tar.xz
-  URL_HASH SHA256=6c58e69cd22348f441b861092b825e591d0b822e106de6eb0ee4d05d27205b70
-  CMAKE_ARGS ${COMMON_CMAKE_ARGS}
-             -DBUILD_CXXLIBS=OFF
-             -DBUILD_PROGRAMS=OFF
-             -DBUILD_EXAMPLES=OFF
-             -DBUILD_TESTING=OFF
-             -DBUILD_DOCS=OFF
-             -DWITH_FORTIFY_SOURCE=OFF
-             -DWITH_STACK_PROTECTOR=OFF
-             -DINSTALL_MANPAGES=OFF
-             -DENABLE_MULTITHREADING=OFF
-             # TODO: Remove this when setting ANDROID_PLATFORM to >=24
-             -DCMAKE_C_FLAGS="-Wno-error=implicit-function-declaration"
-  BUILD_COMMAND cmake --build <BINARY_DIR> --target FLAC
-  INSTALL_COMMAND
-)
-
-ExternalProject_Add_StepDependencies(flac configure libogg)
-
-ExternalProject_Add(
-  opus
-  URL https://downloads.xiph.org/releases/opus/opus-1.5.2.tar.gz
-  URL_HASH SHA256=65c1d2f78b9f2fb20082c38cbe47c951ad5839345876e46941612ee87f9a7ce1
-  CMAKE_ARGS ${COMMON_CMAKE_ARGS}
-             -DOPUS_HARDENING=OFF
-             -DOPUS_STACK_PROTECTOR=OFF
-             -DOPUS_FORTIFY_SOURCE=OFF
-)
-
-ExternalProject_Add(
   libjpeg-turbo
   URL https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.1.0/libjpeg-turbo-3.1.0.tar.gz
   URL_HASH SHA1=ba3c0152f14a504018de19c9f62250d8f3351525
@@ -132,12 +100,12 @@ ExternalProject_Add(
     STRIP=${CMAKE_STRIP}
 )
 
+# This fork disables FLAC and Opus support.
 ExternalProject_Add(
   libsndfile
-  URL https://github.com/libsndfile/libsndfile/releases/download/1.2.2/libsndfile-1.2.2.tar.xz
-  URL_HASH SHA1=8d9031e13f56abb79e89a122333ad11fa0512799
+  GIT_REPOSITORY https://github.com/kichikuou/libsndfile.git
+  GIT_TAG be82f4be73c77f1e759bda9dfe1625204441465a
   CMAKE_ARGS ${COMMON_CMAKE_ARGS}
-             -DCMAKE_POLICY_VERSION_MINIMUM=3.5
              -DBUILD_SHARED_LIBS=OFF
              -DBUILD_PROGRAMS=OFF
              -DBUILD_EXAMPLES=OFF
@@ -156,7 +124,7 @@ ExternalProject_Add(
              -DLIBDEFLATE_BUILD_GZIP=OFF
 )
 
-ExternalProject_Add_StepDependencies(libsndfile configure libvorbis flac opus)
+ExternalProject_Add_StepDependencies(libsndfile configure libvorbis)
 
 ExternalProject_Add(
   xsystem4

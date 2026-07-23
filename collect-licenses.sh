@@ -6,8 +6,6 @@ dest_dir=$2
 mkdir -p ${dest_dir}
 cp ${build_dir}/libogg-prefix/src/libogg/COPYING ${dest_dir}/libogg
 cp ${build_dir}/libvorbis-prefix/src/libvorbis/COPYING ${dest_dir}/libvorbis
-cp ${build_dir}/flac-prefix/src/flac/COPYING.Xiph ${dest_dir}/flac
-cp ${build_dir}/opus-prefix/src/opus/COPYING ${dest_dir}/opus
 cp ${build_dir}/libjpeg-turbo-prefix/src/libjpeg-turbo/LICENSE.md ${dest_dir}/libjpeg-turbo
 cp ${build_dir}/libwebp-prefix/src/libwebp/COPYING ${dest_dir}/libwebp
 cp ${build_dir}/libpng-prefix/src/libpng/LICENSE ${dest_dir}/libpng

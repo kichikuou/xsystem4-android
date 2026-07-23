@@ -13,7 +13,6 @@ class LicensesMenuActivity : Activity() {
         Entry("libsys4", "libsys4", "https://github.com/nunuhara/libsys4"),
         Entry("SDL", "SDL", "https://www.libsdl.org/"),
         Entry("cglm", "cglm", "https://github.com/recp/cglm"),
-        Entry("libFLAC", "flac", "https://xiph.org/flac/"),
         Entry("FreeType", "freetype", "https://freetype.org/"),
         Entry("libdeflate", "libdeflate", "https://github.com/ebiggers/libdeflate"),
         Entry("libffi", "libffi", "https://sourceware.org/libffi/"),
@@ -23,7 +22,6 @@ class LicensesMenuActivity : Activity() {
         Entry("libsndfile", "libsndfile", "https://libsndfile.github.io/libsndfile/"),
         Entry("libvorbis", "libvorbis", "https://xiph.org/vorbis/"),
         Entry("libwebp", "libwebp", "https://chromium.googlesource.com/webm/libwebp/"),
-        Entry("libopus", "opus", "https://opus-codec.org/downloads/"),
         Entry("VL Gothic Regular", "VL-Gothic-Regular", "http://vlgothic.dicey.org/"),
         Entry("Hanazono Mincho A", "HanaMinA", "http://fonts.jp/hanazono/"),
     )
