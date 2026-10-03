@@ -20,7 +20,9 @@ import java.io.InputStream
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.nio.charset.CharacterCodingException
 import java.nio.charset.Charset
+import java.nio.charset.CodingErrorAction
 import java.util.zip.ZipInputStream
 
 interface GameListObserver {
@@ -36,7 +38,7 @@ sealed class InstallState {
     data class Failed(val msgId: Int) : InstallState()
 }
 
-data class Item(val name: String, val path: File, val homedir: File, val savedir: File?, val icon: File?, val error: String?) {
+data class Item(val name: String, val path: File, val homedir: File, val savedir: File?, val icon: File?, val error: String?, val encoding: String = "sjis") {
     companion object {
         fun fromDirectory(dir: File, homedir: File, context: Context): Item {
             var iniFile = File(dir, "System40.ini")
@@ -48,14 +50,14 @@ data class Item(val name: String, val path: File, val homedir: File, val savedir
                 return Item(dir.name, dir, homedir, null, null, err)
             }
             val icon = findIcon(dir)
-            val ini = System40Ini.parse(iniFile)
+            val ini = System40Ini.parse(iniFile, Xsys4rc.read(dir)["encoding"])
             if (ini.gameName == null) {
                 val err = context.getString(R.string.toast_no_GameName, iniFile.path)
                 Log.w("GameList", err)
                 return Item(dir.name, dir, homedir, null, icon, err)
             }
             val savedir = File(dir, ini.SaveFolder ?: "SaveData")
-            return Item(ini.gameName, dir, homedir, savedir, icon, null)
+            return Item(ini.gameName, dir, homedir, savedir, icon, null, ini.encoding)
         }
 
         private fun findIcon(dir: File): File? {
@@ -112,13 +114,18 @@ data class Item(val name: String, val path: File, val homedir: File, val savedir
     }
 }
 
-data class System40Ini(val gameName: String?, val SaveFolder: String?) {
+data class System40Ini(val gameName: String?, val SaveFolder: String?, val encoding: String) {
     companion object {
-        fun parse(file: File): System40Ini {
+        // `encoding` is the value of the encoding setting in .xsys4rc. If it is not given, the
+        // encoding is detected from the content of the file.
+        fun parse(file: File, encoding: String?): System40Ini {
+            val bytes = file.readBytes()
+            val enc = encoding ?: detectEncoding(bytes)
+            val charset = charsetOrNull(enc) ?: Charset.forName("Shift_JIS")
             val regex = Regex("""(\w+)\s*=\s*"(.*)"""")
             var gameName: String? = null
             var SaveFolder: String? = null
-            for (line in file.readLines(Charset.forName("Shift_JIS"))) {
+            for (line in String(bytes, charset).lines()) {
                 regex.matchEntire(line)?.let {
                     when (it.groupValues[1]) {
                         "GameName" -> gameName = it.groupValues[2]
@@ -126,7 +133,46 @@ data class System40Ini(val gameName: String?, val SaveFolder: String?) {
                     }
                 }
             }
-            return System40Ini(gameName, SaveFolder)
+            return System40Ini(gameName, SaveFolder, enc)
+        }
+
+        private fun charsetOrNull(name: String): Charset? =
+            try {
+                Charset.forName(name)
+            } catch (e: IllegalArgumentException) {
+                null
+            }
+
+        // Shift_JIS is tried first, because Shift_JIS text is often also valid GBK (as garbage),
+        // but GBK text rarely is valid Shift_JIS.
+        private fun detectEncoding(bytes: ByteArray): String =
+            if (!canDecode(bytes, "Shift_JIS") && canDecode(bytes, "GBK")) "gbk" else "sjis"
+
+        private fun canDecode(bytes: ByteArray, charsetName: String): Boolean {
+            val decoder = Charset.forName(charsetName).newDecoder()
+                .onMalformedInput(CodingErrorAction.REPORT)
+                .onUnmappableCharacter(CodingErrorAction.REPORT)
+            return try {
+                decoder.decode(ByteBuffer.wrap(bytes))
+                true
+            } catch (e: CharacterCodingException) {
+                false
+            }
+        }
+    }
+}
+
+// Reads string settings (`name = "value"`) from the .xsys4rc file in a game directory.
+object Xsys4rc {
+    private val regex = Regex("""\s*([\w-]+)\s*=\s*"([^"]*)"\s*(?:(?:;|//).*)?""")
+
+    fun read(gameDir: File): Map<String, String> {
+        val file = File(gameDir, ".xsys4rc")
+        if (!file.isFile) return emptyMap()
+        // Setting names are ASCII; values and comments may use a legacy encoding.
+        return file.useLines(Charsets.ISO_8859_1) { lines ->
+            lines.mapNotNull { regex.matchEntire(it) }
+                .associate { it.groupValues[1] to it.groupValues[2] }
         }
     }
 }

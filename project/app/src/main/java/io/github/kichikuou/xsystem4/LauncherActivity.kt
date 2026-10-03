@@ -181,6 +181,7 @@ class LauncherActivity : Activity(), GameListObserver {
         i.setClass(applicationContext, XSystem4Activity::class.java)
         i.putExtra(XSystem4Activity.EXTRA_GAME_ROOT, item.path.path)
         i.putExtra(XSystem4Activity.EXTRA_SAVE_DIR, item.savedir!!.path)
+        i.putExtra(XSystem4Activity.EXTRA_ENCODING, item.encoding)
         startActivity(i)
     }
 
