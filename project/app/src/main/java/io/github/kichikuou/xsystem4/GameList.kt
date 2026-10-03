@@ -115,10 +115,11 @@ data class Item(val name: String, val path: File, val homedir: File, val savedir
 data class System40Ini(val gameName: String?, val SaveFolder: String?) {
     companion object {
         fun parse(file: File): System40Ini {
+            val charset = Charset.forName(readCharsetName(File(file.parentFile, ".xsys4rc")))
             val regex = Regex("""(\w+)\s*=\s*"(.*)"""")
             var gameName: String? = null
             var SaveFolder: String? = null
-            for (line in file.readLines(Charset.forName("Shift_JIS"))) {
+            for (line in file.readLines(charset)) {
                 regex.matchEntire(line)?.let {
                     when (it.groupValues[1]) {
                         "GameName" -> gameName = it.groupValues[2]
@@ -127,6 +128,17 @@ data class System40Ini(val gameName: String?, val SaveFolder: String?) {
                 }
             }
             return System40Ini(gameName, SaveFolder)
+        }
+
+        private fun readCharsetName(file: File): String {
+            if (!file.isFile) return "Shift_JIS"
+            val regex = Regex("""\s*gbk\s*=\s*(true|false)\s*(?:(?:;|//).*)?""")
+            // The setting is ASCII; other values/comments may use a legacy encoding.
+            return file.useLines(Charsets.ISO_8859_1) { lines ->
+                val gbk = lines.mapNotNull { regex.matchEntire(it)?.groupValues?.get(1) }
+                    .lastOrNull() == "true"
+                if (gbk) "GBK" else "Shift_JIS"
+            }
         }
     }
 }
